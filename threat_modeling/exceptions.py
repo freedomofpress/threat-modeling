@@ -1,0 +1,2 @@
+class DuplicateIdentifier(Exception):
+    pass
