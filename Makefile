@@ -3,6 +3,6 @@ test:
 
 lint:
 	black threat_modeling
-	mypy --package threat_modeling
+	mypy --strict --package threat_modeling
 
 check: lint test

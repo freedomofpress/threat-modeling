@@ -5,8 +5,8 @@ from threat_modeling.exceptions import DuplicateIdentifier
 
 
 class ThreatModel:
-    def __init__(self):
-        self.elements = []
+    def __init__(self) -> None:
+        self.elements: List[Element] = []
 
     def __contains__(self, other: Element) -> bool:
         if other in self.elements:
