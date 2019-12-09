@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: 
+          name: Install dev dependencies and run tests.
+          command: |
+            virtualenv --python python3 .venv
+            source .venv/bin/activate
+            pip install -r dev-requirements.txt
+            make check
+
+workflows:
+  version: 2
+  jobs_per_pr:
+    jobs:
+      - test
