@@ -1,8 +1,9 @@
+import pygraphviz
 from uuid import UUID
 
 from typing import List, Union
 
-from threat_modeling.data_flow import Element
+from threat_modeling.data_flow import Element, Dataflow
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.threats import Threat
 
@@ -43,6 +44,15 @@ class ThreatModel:
         if element.identifier in [x.identifier for x in self.threats]:
             raise DuplicateIdentifier
 
+        if isinstance(element, Dataflow):
+            for item in [element.source_id, element.dest_id]:
+                try:
+                    self[item]
+                except KeyError:
+                    raise ValueError(
+                        "Node {} not found, add it before the Dataflow.".format(item)
+                    )
+
         self.elements.append(element)
 
     def add_threat(self, threat: Threat) -> None:
@@ -53,3 +63,15 @@ class ThreatModel:
             raise DuplicateIdentifier
 
         self.threats.append(threat)
+
+    def draw(self, output: str = "dfd.png") -> None:
+        dfd = pygraphviz.AGraph()
+        for element in self.elements:
+            if isinstance(element, Dataflow):
+                source_node = dfd.get_node(element.source_id)
+                dest_node = dfd.get_node(element.dest_id)
+                dfd.add_edge(source_node, dest_node)
+            else:
+                dfd.add_node(element.identifier)
+
+        dfd.draw(output, prog="dot")
