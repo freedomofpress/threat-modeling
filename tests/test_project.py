@@ -8,7 +8,7 @@ from threat_modeling.threats import Threat
 
 
 def test_threat_model_saves_elements():
-    server = Element(identifier="Server")
+    server = Element(name="server", identifier="ELEMENT1", description="My test server")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_element(server)
@@ -18,7 +18,8 @@ def test_threat_model_saves_elements():
 
 def test_threat_model_get_element_by_id():
     test_id = "Server"
-    server = Element(identifier=test_id)
+    server = Element(name="Primary server", identifier=test_id,
+                     description="My test server")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_element(server)
@@ -28,7 +29,7 @@ def test_threat_model_get_element_by_id():
 
 def test_threat_model_disallows_adding_duplicate_elements():
     test_id = "Server"
-    server = Element(identifier=test_id)
+    server = Element(name="Primary server", identifier=test_id)
     my_threat_model = ThreatModel()
 
     my_threat_model.add_element(server)
@@ -91,7 +92,7 @@ def test_threat_model_disallows_adding_duplicate_threats():
 
 def test_threat_model_disallows_adding_threats_that_duplicate_an_element():
     tamper_traffic = Threat(identifier="a", description="This doesn't really matter")
-    server = Element(identifier="a")
+    server = Element(name="Primary server", identifier="a")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_element(server)
@@ -102,7 +103,7 @@ def test_threat_model_disallows_adding_threats_that_duplicate_an_element():
 
 def test_threat_model_disallows_adding_elements_that_duplicate_a_threat():
     tamper_traffic = Threat(identifier="a", description="This doesn't really matter")
-    server = Element(identifier="a")
+    server = Element(name="Primary server", identifier="a")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_threat(tamper_traffic)
@@ -113,10 +114,10 @@ def test_threat_model_disallows_adding_elements_that_duplicate_a_threat():
 
 def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
     test_id_1 = "Server"
-    server = Element(identifier=test_id_1)
+    server = Element(name="Primary server", identifier=test_id_1)
     test_id_2 = "Client"
     dataflow_id = "HTTP"
-    http_traffic = Dataflow(identifier=dataflow_id,
+    http_traffic = Dataflow(name=dataflow_id, identifier=dataflow_id,
                             first_id=test_id_2,
                             second_id=test_id_1)
 
@@ -129,9 +130,9 @@ def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
 
 def test_threat_model_draws_data_flow_diagram_two_elements():
     test_id_1 = "Server"
-    server = Element(identifier=test_id_1)
+    server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
-    client = Element(identifier=test_id_2)
+    client = Element(name=test_id_2, identifier=test_id_2)
 
     my_threat_model = ThreatModel()
 
@@ -143,11 +144,11 @@ def test_threat_model_draws_data_flow_diagram_two_elements():
 
 def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
     test_id_1 = "Server"
-    server = Element(identifier=test_id_1)
+    server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
-    client = Element(identifier=test_id_2)
+    client = Element(name=test_id_1, identifier=test_id_2)
     dataflow_id = "HTTP"
-    http_traffic = Dataflow(identifier=dataflow_id,
+    http_traffic = Dataflow(name=dataflow_id, identifier=dataflow_id,
                             first_id=test_id_2,
                             second_id=test_id_1)
 
@@ -162,11 +163,11 @@ def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
 
 def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow():
     test_id_1 = "Server"
-    server = Element(identifier=test_id_1)
+    server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
-    client = Element(identifier=test_id_2)
+    client = Element(name=test_id_2, identifier=test_id_2)
     dataflow_id = "HTTP"
-    http_traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+    http_traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id, dataflow_id)
 
     my_threat_model = ThreatModel()
 
@@ -179,11 +180,11 @@ def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow
 
 def test_threat_model_draws_data_flow_diagram_process():
     test_id_1 = "sshd"
-    server = Process(identifier=test_id_1)
+    server = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "ssh client"
-    client = Element(identifier=test_id_2)
+    client = Element(name=test_id_2, identifier=test_id_2)
     dataflow_id = "ssh traffic"
-    traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+    traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id, dataflow_id)
 
     my_threat_model = ThreatModel()
 
@@ -196,11 +197,11 @@ def test_threat_model_draws_data_flow_diagram_process():
 
 def test_threat_model_draws_data_flow_diagram_external_entity():
     test_id_1 = "cron-apt"
-    cron = Process(identifier=test_id_1)
+    cron = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "apt server"
-    server = ExternalEntity(identifier=test_id_2)
+    server = ExternalEntity(name=test_id_2, identifier=test_id_2)
     dataflow_id = "apt traffic"
-    traffic = Dataflow(test_id_2, test_id_1, dataflow_id)
+    traffic = Dataflow(test_id_2, test_id_1, dataflow_id, dataflow_id)
 
     my_threat_model = ThreatModel()
 
@@ -211,13 +212,29 @@ def test_threat_model_draws_data_flow_diagram_external_entity():
     my_threat_model.draw()
 
 
+def test_threat_model_draws_data_flow_diagram_duplicate_elements():
+    name_1 = "apt server"
+    test_id_1 = "APT_EXTERNAL_1"
+    server_1 = ExternalEntity(name=name_1, identifier=test_id_1)
+    name_2 = "apt server"
+    test_id_2 = "APT_EXTERNAL_2"
+    server_2 = ExternalEntity(name=name_2, identifier=test_id_2)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(server_1)
+    my_threat_model.add_element(server_2)
+
+    my_threat_model.draw()
+
+
 def test_threat_model_draws_data_flow_diagram_data_store():
     test_id_1 = "Web application"
-    webapp = Process(identifier=test_id_1)
+    webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
-    db = Datastore(identifier=test_id_2)
+    db = Datastore(name=test_id_2, identifier=test_id_2)
     dataflow_id = "SQL"
-    traffic = Dataflow(test_id_1, test_id_2, dataflow_id)
+    traffic = Dataflow(test_id_1, test_id_2, dataflow_id, dataflow_id)
 
     my_threat_model = ThreatModel()
 

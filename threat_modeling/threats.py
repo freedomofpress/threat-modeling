@@ -1,11 +1,13 @@
 from uuid import uuid4, UUID
 
-from typing import Optional
+from typing import Optional, Union
 
 
 class Threat:
     def __init__(
-        self, identifier: Optional[UUID] = None, description: Optional[str] = None
+        self,
+        identifier: Optional[Union[str, UUID]] = None,
+        description: Optional[str] = None,
     ):
         if not identifier:
             identifier = uuid4()
