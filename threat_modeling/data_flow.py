@@ -53,3 +53,11 @@ class Process(Element):
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(self.identifier, shape="circle")
+
+
+class ExternalEntity(Element):
+    def __init__(self, identifier: Optional[str] = None):
+        self.identifier = identifier
+
+    def draw(self, graph: AGraph) -> None:
+        graph.add_node(self.identifier, shape="rectangle")

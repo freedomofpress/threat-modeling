@@ -1,6 +1,7 @@
 import pytest
 
-from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow, Process
+from threat_modeling.data_flow import (Element, Dataflow, BidirectionalDataflow,
+                                       Process, ExternalEntity)
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
@@ -179,10 +180,27 @@ def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow
 def test_threat_model_draws_data_flow_diagram_process():
     test_id_1 = "sshd"
     server = Process(identifier=test_id_1)
-    test_id_2 = "Client"
+    test_id_2 = "ssh client"
     client = Element(identifier=test_id_2)
-    dataflow_id = "HTTP"
+    dataflow_id = "ssh traffic"
     http_traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(server)
+    my_threat_model.add_element(client)
+    my_threat_model.add_element(http_traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_external_entity():
+    test_id_1 = "cron-apt"
+    server = Process(identifier=test_id_1)
+    test_id_2 = "apt server"
+    client = ExternalEntity(identifier=test_id_2)
+    dataflow_id = "apt traffic"
+    http_traffic = Dataflow(test_id_2, test_id_1, dataflow_id)
 
     my_threat_model = ThreatModel()
 
