@@ -116,8 +116,8 @@ def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
     test_id_2 = "Client"
     dataflow_id = "HTTP"
     http_traffic = Dataflow(identifier=dataflow_id,
-                            source_id=test_id_2,
-                            dest_id=test_id_1)
+                            first_id=test_id_2,
+                            second_id=test_id_1)
 
     my_threat_model = ThreatModel()
 
@@ -147,8 +147,8 @@ def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
     client = Element(identifier=test_id_2)
     dataflow_id = "HTTP"
     http_traffic = Dataflow(identifier=dataflow_id,
-                            source_id=test_id_2,
-                            dest_id=test_id_1)
+                            first_id=test_id_2,
+                            second_id=test_id_1)
 
     my_threat_model = ThreatModel()
 
