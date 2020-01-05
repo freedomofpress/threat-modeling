@@ -1,6 +1,7 @@
 import pytest
 
-from threat_modeling.data_flow import Element, Dataflow
+from threat_modeling.data_flow import (Element, Dataflow, BidirectionalDataflow,
+                                       Process, ExternalEntity, Datastore)
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
@@ -116,8 +117,8 @@ def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
     test_id_2 = "Client"
     dataflow_id = "HTTP"
     http_traffic = Dataflow(identifier=dataflow_id,
-                            source_id=test_id_2,
-                            dest_id=test_id_1)
+                            first_id=test_id_2,
+                            second_id=test_id_1)
 
     my_threat_model = ThreatModel()
 
@@ -147,13 +148,81 @@ def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
     client = Element(identifier=test_id_2)
     dataflow_id = "HTTP"
     http_traffic = Dataflow(identifier=dataflow_id,
-                            source_id=test_id_2,
-                            dest_id=test_id_1)
+                            first_id=test_id_2,
+                            second_id=test_id_1)
 
     my_threat_model = ThreatModel()
 
     my_threat_model.add_element(server)
     my_threat_model.add_element(client)
     my_threat_model.add_element(http_traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow():
+    test_id_1 = "Server"
+    server = Element(identifier=test_id_1)
+    test_id_2 = "Client"
+    client = Element(identifier=test_id_2)
+    dataflow_id = "HTTP"
+    http_traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(server)
+    my_threat_model.add_element(client)
+    my_threat_model.add_element(http_traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_process():
+    test_id_1 = "sshd"
+    server = Process(identifier=test_id_1)
+    test_id_2 = "ssh client"
+    client = Element(identifier=test_id_2)
+    dataflow_id = "ssh traffic"
+    traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(server)
+    my_threat_model.add_element(client)
+    my_threat_model.add_element(traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_external_entity():
+    test_id_1 = "cron-apt"
+    cron = Process(identifier=test_id_1)
+    test_id_2 = "apt server"
+    server = ExternalEntity(identifier=test_id_2)
+    dataflow_id = "apt traffic"
+    traffic = Dataflow(test_id_2, test_id_1, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(cron)
+    my_threat_model.add_element(server)
+    my_threat_model.add_element(traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_data_store():
+    test_id_1 = "Web application"
+    webapp = Process(identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(identifier=test_id_2)
+    dataflow_id = "SQL"
+    traffic = Dataflow(test_id_1, test_id_2, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(traffic)
 
     my_threat_model.draw()

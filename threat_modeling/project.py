@@ -3,7 +3,7 @@ from uuid import UUID
 
 from typing import List, Union
 
-from threat_modeling.data_flow import Element, Dataflow
+from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.threats import Threat
 
@@ -44,8 +44,8 @@ class ThreatModel:
         if element.identifier in [x.identifier for x in self.threats]:
             raise DuplicateIdentifier
 
-        if isinstance(element, Dataflow):
-            for item in [element.source_id, element.dest_id]:
+        if isinstance(element, (Dataflow, BidirectionalDataflow)):
+            for item in [element.first_id, element.second_id]:
                 try:
                     self[item]
                 except KeyError:
@@ -67,11 +67,5 @@ class ThreatModel:
     def draw(self, output: str = "dfd.png") -> None:
         dfd = pygraphviz.AGraph()
         for element in self.elements:
-            if isinstance(element, Dataflow):
-                source_node = dfd.get_node(element.source_id)
-                dest_node = dfd.get_node(element.dest_id)
-                dfd.add_edge(source_node, dest_node)
-            else:
-                dfd.add_node(element.identifier)
-
-        dfd.draw(output, prog="dot")
+            element.draw(dfd)
+        dfd.draw(output, prog="dot", args="-Gdpi=300")
