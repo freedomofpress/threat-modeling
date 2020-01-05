@@ -68,4 +68,4 @@ class ThreatModel:
         dfd = pygraphviz.AGraph()
         for element in self.elements:
             element.draw(dfd)
-        dfd.draw(output, prog="dot")
+        dfd.draw(output, prog="dot", args="-Gdpi=300")
