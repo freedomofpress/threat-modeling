@@ -3,7 +3,7 @@ from uuid import UUID
 
 from typing import List, Union
 
-from threat_modeling.data_flow import Element, Dataflow
+from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.threats import Threat
 
@@ -70,7 +70,11 @@ class ThreatModel:
             if isinstance(element, Dataflow):
                 source_node = dfd.get_node(element.source_id)
                 dest_node = dfd.get_node(element.dest_id)
-                dfd.add_edge(source_node, dest_node)
+                dfd.add_edge(source_node, dest_node, dir="forward", arrowhead="normal")
+            elif isinstance(element, BidirectionalDataflow):
+                node_1 = dfd.get_node(element.first_id)
+                node_2 = dfd.get_node(element.second_id)
+                dfd.add_edge(node_1, node_2, dir="both", arrowhead="normal")
             else:
                 dfd.add_node(element.identifier)
 
