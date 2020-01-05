@@ -1,6 +1,6 @@
 import pytest
 
-from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow
+from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow, Process
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
@@ -162,6 +162,23 @@ def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
 def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow():
     test_id_1 = "Server"
     server = Element(identifier=test_id_1)
+    test_id_2 = "Client"
+    client = Element(identifier=test_id_2)
+    dataflow_id = "HTTP"
+    http_traffic = BidirectionalDataflow(test_id_2, test_id_1, dataflow_id)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(server)
+    my_threat_model.add_element(client)
+    my_threat_model.add_element(http_traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_process():
+    test_id_1 = "sshd"
+    server = Process(identifier=test_id_1)
     test_id_2 = "Client"
     client = Element(identifier=test_id_2)
     dataflow_id = "HTTP"

@@ -45,3 +45,11 @@ class BidirectionalDataflow(Dataflow):
         node_1 = graph.get_node(self.first_id)
         node_2 = graph.get_node(self.second_id)
         graph.add_edge(node_1, node_2, dir="both", arrowhead="normal")
+
+
+class Process(Element):
+    def __init__(self, identifier: Optional[str] = None):
+        self.identifier = identifier
+
+    def draw(self, graph: AGraph) -> None:
+        graph.add_node(self.identifier, shape="circle")
