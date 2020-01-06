@@ -1,7 +1,12 @@
 from pygraphviz import AGraph
 from uuid import UUID, uuid4
 
-from typing import List, Optional, Union
+from typing import List, Optional, Type, TypeVar, Union
+
+
+FONTSIZE = 10.0
+
+T = TypeVar("T", bound="Dataflow")
 
 
 class Element:
@@ -22,8 +27,16 @@ class Element:
         # Extended information about this elements can be stored in the description
         self.description = description
 
+    def __str__(self) -> str:
+        return "<Element: {}>".format(self.name)
+
+    def __repr__(self) -> str:
+        return 'Element("{}", "{}", "{}")'.format(
+            self.name, self.identifier, self.description
+        )
+
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(self.identifier, label=self.name)
+        graph.add_node(self.identifier, label=self.name, fontsize=FONTSIZE)
 
 
 class Dataflow(Element):
@@ -42,10 +55,37 @@ class Dataflow(Element):
         self.first_id = first_id
         self.second_id = second_id
 
+    @classmethod
+    def from_elements(
+        cls: Type[T],
+        first_element: Element,
+        second_element: Element,
+        name: str,
+        identifier: Optional[Union[str, UUID]] = None,
+        description: Optional[str] = None,
+    ) -> T:
+        return cls(
+            first_element.identifier,
+            second_element.identifier,
+            name,
+            identifier,
+            description,
+        )
+
+    def __str__(self) -> str:
+        return "<Dataflow: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
         source_node = graph.get_node(self.first_id)
         dest_node = graph.get_node(self.second_id)
-        graph.add_edge(source_node, dest_node, dir="forward", arrowhead="normal")
+        graph.add_edge(
+            source_node,
+            dest_node,
+            dir="forward",
+            arrowhead="normal",
+            label=self.name,
+            fontsize=FONTSIZE - 2,
+        )
 
 
 class BidirectionalDataflow(Dataflow):
@@ -59,10 +99,20 @@ class BidirectionalDataflow(Dataflow):
     ):
         super().__init__(first_id, second_id, name, identifier, description)
 
+    def __str__(self) -> str:
+        return "<BidirectionalDataflow: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
         node_1 = graph.get_node(self.first_id)
         node_2 = graph.get_node(self.second_id)
-        graph.add_edge(node_1, node_2, dir="both", arrowhead="normal", label=self.name)
+        graph.add_edge(
+            node_1,
+            node_2,
+            dir="both",
+            arrowhead="normal",
+            label=self.name,
+            fontsize=FONTSIZE - 2,
+        )
 
 
 class Process(Element):
@@ -74,8 +124,13 @@ class Process(Element):
     ):
         super().__init__(name, identifier, description)
 
+    def __str__(self) -> str:
+        return "<Process: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(self.identifier, shape="circle", label=self.name)
+        graph.add_node(
+            self.identifier, shape="circle", label=self.name, fontsize=FONTSIZE
+        )
 
 
 class ExternalEntity(Element):
@@ -87,8 +142,13 @@ class ExternalEntity(Element):
     ):
         super().__init__(name, identifier, description)
 
+    def __str__(self) -> str:
+        return "<ExternalEntity: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(self.identifier, shape="rectangle", label=self.name)
+        graph.add_node(
+            self.identifier, shape="rectangle", label=self.name, fontsize=FONTSIZE
+        )
 
 
 class Datastore(Element):
@@ -100,22 +160,40 @@ class Datastore(Element):
     ):
         super().__init__(name, identifier, description)
 
+    def __str__(self) -> str:
+        return "<Datastore: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(self.identifier, shape="cylinder", label=self.name)
+        graph.add_node(
+            self.identifier, shape="cylinder", label=self.name, fontsize=FONTSIZE
+        )
 
 
 class Boundary(Element):
     def __init__(
         self,
-        members: List[Union[str, UUID]],
         name: str,
+        members: List[Union[str, UUID]],
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
         self.members = members  # Contains identifiers for nodes in this boundary
 
+    def __str__(self) -> str:
+        return "<Boundary: {}>".format(self.name)
+
     def draw(self, graph: AGraph) -> None:
+        for member in list(self.members):
+            # get_subgraph() returns None if the subgraph does not exist.
+            subgraph = graph.get_subgraph("cluster_" + str(member))
+            if subgraph:
+                # Add nodes for any boundaries passed as members
+                for node in subgraph.nodes():
+                    self.members.append(node)
+                self.members.remove(member)
+                subgraph = None
+
         # This will raise KeyError if a node is not present in the graph
         graphviz_nodes = [graph.get_node(x) for x in self.members]
 
@@ -129,10 +207,11 @@ class Boundary(Element):
         if len(subgraphs_to_use) == 1:
             graph = subgraphs_to_use.pop()
 
-        # Graphviz convention is that cluster are named with the prefix "cluster"
+        # Graphviz convention is that subgraphs are named with the prefix "cluster"
         graph.add_subgraph(
             graphviz_nodes,
-            name="cluster_{}".format(self.identifier),
+            name="cluster_{}".format(str(self.identifier)),
             label=self.name,
             style="dotted",
+            fontsize=FONTSIZE,
         )

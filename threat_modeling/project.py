@@ -1,7 +1,7 @@
 import pygraphviz
 from uuid import UUID
 
-from typing import List, Union
+from typing import List, Optional, Union
 
 from threat_modeling.data_flow import Element, Dataflow, BidirectionalDataflow
 from threat_modeling.exceptions import DuplicateIdentifier
@@ -9,7 +9,11 @@ from threat_modeling.threats import Threat
 
 
 class ThreatModel:
-    def __init__(self) -> None:
+    def __init__(
+        self, name: Optional[str] = None, description: Optional[str] = None
+    ) -> None:
+        self.name = name
+        self.description = description
         self.elements: List[Element] = []
         self.threats: List[Threat] = []
 
@@ -39,10 +43,14 @@ class ThreatModel:
 
     def add_element(self, element: Element) -> None:
         if element.identifier in [x.identifier for x in self.elements]:
-            raise DuplicateIdentifier
+            raise DuplicateIdentifier(
+                "already have {} in this threat model".format(element.identifier)
+            )
 
         if element.identifier in [x.identifier for x in self.threats]:
-            raise DuplicateIdentifier
+            raise DuplicateIdentifier(
+                "already have {} in this threat model".format(element.identifier)
+            )
 
         if isinstance(element, (Dataflow, BidirectionalDataflow)):
             for item in [element.first_id, element.second_id]:

@@ -252,7 +252,7 @@ def test_threat_model_draws_data_flow_diagram_boundary():
     db = Datastore(name=test_id_2, identifier=test_id_2)
 
     # Dataflows should not be in graphs
-    boundary = Boundary([test_id_1, test_id_2], 'trust')
+    boundary = Boundary('trust', [test_id_1, test_id_2])
 
     my_threat_model = ThreatModel()
 
@@ -271,8 +271,8 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary():
     test_id_3 = "Web application backend"
     webapp_2 = Process(name=test_id_3, identifier=test_id_3)
 
-    boundary = Boundary([test_id_1, test_id_3, test_id_2], 'trust')
-    boundary_2 = Boundary([test_id_1, test_id_3], 'webapp')
+    boundary = Boundary('trust', [test_id_1, test_id_3, test_id_2])
+    boundary_2 = Boundary('webapp', [test_id_1, test_id_3])
 
     my_threat_model = ThreatModel()
 
@@ -281,5 +281,27 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary():
     my_threat_model.add_element(webapp_2)
     my_threat_model.add_element(boundary)
     my_threat_model.add_element(boundary_2)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_add_by_boundary():
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    boundary_2 = Boundary('webapp', [test_id_1, test_id_3])
+    my_threat_model.add_element(boundary_2)
+    boundary = Boundary('trust', [boundary_2.identifier, test_id_2])
+    my_threat_model.add_element(boundary)
 
     my_threat_model.draw()
