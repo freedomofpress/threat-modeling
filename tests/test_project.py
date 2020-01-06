@@ -1,7 +1,7 @@
 import pytest
 
 from threat_modeling.data_flow import (Element, Dataflow, BidirectionalDataflow,
-                                       Process, ExternalEntity, Datastore)
+                                       Process, ExternalEntity, Datastore, Boundary)
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
@@ -241,5 +241,45 @@ def test_threat_model_draws_data_flow_diagram_data_store():
     my_threat_model.add_element(webapp)
     my_threat_model.add_element(db)
     my_threat_model.add_element(traffic)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_boundary():
+    test_id_1 = "Web application"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+
+    # Dataflows should not be in graphs
+    boundary = Boundary([test_id_1, test_id_2], 'trust')
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(boundary)
+
+    my_threat_model.draw()
+
+
+def test_threat_model_draws_data_flow_diagram_nested_boundary():
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    boundary = Boundary([test_id_1, test_id_3, test_id_2], 'trust')
+    boundary_2 = Boundary([test_id_1, test_id_3], 'webapp')
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+    my_threat_model.add_element(boundary)
+    my_threat_model.add_element(boundary_2)
 
     my_threat_model.draw()

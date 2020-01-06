@@ -1,7 +1,7 @@
 from pygraphviz import AGraph
 from uuid import UUID, uuid4
 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 
 class Element:
@@ -102,3 +102,37 @@ class Datastore(Element):
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(self.identifier, shape="cylinder", label=self.name)
+
+
+class Boundary(Element):
+    def __init__(
+        self,
+        members: List[Union[str, UUID]],
+        name: str,
+        identifier: Optional[Union[str, UUID]] = None,
+        description: Optional[str] = None,
+    ):
+        super().__init__(name, identifier, description)
+        self.members = members  # Contains identifiers for nodes in this boundary
+
+    def draw(self, graph: AGraph) -> None:
+        # This will raise KeyError if a node is not present in the graph
+        graphviz_nodes = [graph.get_node(x) for x in self.members]
+
+        # Handle nested subgraphs
+        subgraphs_to_use = set()
+        for subgraph in graph.subgraphs():
+            for member in self.members:
+                if subgraph.has_node(member):
+                    subgraphs_to_use.add(subgraph)
+
+        if len(subgraphs_to_use) == 1:
+            graph = subgraphs_to_use.pop()
+
+        # Graphviz convention is that cluster are named with the prefix "cluster"
+        graph.add_subgraph(
+            graphviz_nodes,
+            name="cluster_{}".format(self.identifier),
+            label=self.name,
+            style="dotted",
+        )
