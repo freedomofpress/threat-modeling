@@ -1,7 +1,7 @@
 import pygraphviz
 from uuid import UUID
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from threat_modeling.data_flow import Boundary, Element, Dataflow, BidirectionalDataflow
 from threat_modeling.exceptions import DuplicateIdentifier
@@ -68,9 +68,13 @@ class ThreatModel:
                 boundary = self[child]
                 if isinstance(boundary, Boundary):
                     # Set Boundary.nodes to consist of the nodes
-                    element.nodes += boundary.members
+                    # TODO: investigate this mypy error, could be legitimate TypeError
+                    element.nodes += boundary.members  # type: ignore
                 else:
-                    element.nodes.append(child)
+                    # child_element = self[child]
+                    # TODO: remove below type: ignore when we create an
+                    #  ElementCollection type?
+                    element.nodes.append(child)  # type: ignore
 
         self.elements.append(element)
 
@@ -93,12 +97,14 @@ class ThreatModel:
         for boundary in self.boundaries:
             elements_to_draw.remove(boundary)
             for child in boundary.members:
-                child = self[child]
-                if isinstance(child, Boundary):
-                    child.parent = boundary
+                child_boundary = self[child]
+                if isinstance(child_boundary, Boundary):
+                    child_boundary.parent = boundary
 
         # Construct a dict based on the child-parent relationships.
-        boundary_tree = {}
+        boundary_tree: Dict[
+            Optional[Union[Boundary, Element]], List[Union[Boundary, Element]]
+        ] = {}
         boundary_tree[None] = []
         for boundary in self.boundaries:
             try:
@@ -109,15 +115,16 @@ class ThreatModel:
         for element in elements_to_draw:
             element.draw(dfd)
 
-        # Draw the boundaries beginning with the top-level boundaries of the boundary tree.
+        # Draw the boundaries beginning with the top-level boundaries of the
+        # boundary tree.
         boundaries_to_draw = boundary_tree[None]
         while len(boundaries_to_draw) != 0:
-            boundary = boundaries_to_draw[0]
-            boundary.draw(dfd)
-            boundaries_to_draw.remove(boundary)
+            boundary_to_draw = boundaries_to_draw[0]
+            boundary_to_draw.draw(dfd)
+            boundaries_to_draw.remove(boundary_to_draw)
             try:
-                for child in boundary_tree[boundary]:
-                    boundaries_to_draw.append(child)
+                for child_boundary in boundary_tree[boundary_to_draw]:
+                    boundaries_to_draw.append(child_boundary)
             except KeyError:  # We're at a leaf.
                 pass
 

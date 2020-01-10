@@ -180,9 +180,11 @@ class Boundary(Element):
         nodes: Optional[List[Element]] = None,
     ):
         super().__init__(name, identifier, description)
-        self.members = members  # Contains identifiers for boundaries, nodes in this boundary
+        self.members = (
+            members  # Contains identifiers for boundaries, nodes in this boundary
+        )
         self.parent = parent
-        self.nodes = []
+        self.nodes: List[Element] = []
 
     def __str__(self) -> str:
         return "<Boundary: {}>".format(self.name)
