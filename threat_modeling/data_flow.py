@@ -5,6 +5,14 @@ from typing import List, Optional, Type, TypeVar, Union
 
 
 FONTSIZE = 10.0
+FONTFACE = "Times-Roman"
+
+# Colors here loosely based on seaborn
+ELEMENT_COLOR = "#DF9AA4"
+PROCESS_COLOR = "#C1DECA"
+EXTERNAL_COLOR = "#65A9A4"
+DATASTORE_COLOR = "#B3AAE6"
+
 
 T = TypeVar("T", bound="Dataflow")
 
@@ -36,7 +44,14 @@ class Element:
         )
 
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(self.identifier, label=self.name, fontsize=FONTSIZE)
+        graph.add_node(
+            self.identifier,
+            label=self.name,
+            style="filled",
+            fontsize=FONTSIZE,
+            fontname=FONTFACE,
+            fillcolor=ELEMENT_COLOR,
+        )
 
 
 class Dataflow(Element):
@@ -78,13 +93,15 @@ class Dataflow(Element):
     def draw(self, graph: AGraph) -> None:
         source_node = graph.get_node(self.first_id)
         dest_node = graph.get_node(self.second_id)
+        # We draw edges with a bit of padding around the label to prevent overlapping.
         graph.add_edge(
             source_node,
             dest_node,
             dir="forward",
             arrowhead="normal",
-            label=self.name,
+            label=" " + self.name + " ",
             fontsize=FONTSIZE - 2,
+            fontname=FONTFACE,
         )
 
 
@@ -105,13 +122,15 @@ class BidirectionalDataflow(Dataflow):
     def draw(self, graph: AGraph) -> None:
         node_1 = graph.get_node(self.first_id)
         node_2 = graph.get_node(self.second_id)
+        # We draw edges with a bit of padding around the label to prevent overlapping.
         graph.add_edge(
             node_1,
             node_2,
             dir="both",
             arrowhead="normal",
-            label=self.name,
+            label=" " + self.name + " ",
             fontsize=FONTSIZE - 2,
+            fontname=FONTFACE,
         )
 
 
@@ -129,7 +148,13 @@ class Process(Element):
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
-            self.identifier, shape="circle", label=self.name, fontsize=FONTSIZE
+            self.identifier,
+            shape="circle",
+            label=self.name,
+            fontsize=FONTSIZE,
+            fontname=FONTFACE,
+            style="filled",
+            fillcolor=PROCESS_COLOR,
         )
 
 
@@ -147,7 +172,13 @@ class ExternalEntity(Element):
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
-            self.identifier, shape="rectangle", label=self.name, fontsize=FONTSIZE
+            self.identifier,
+            shape="rectangle",
+            label=self.name,
+            fontsize=FONTSIZE,
+            fontname=FONTFACE,
+            style="filled",
+            fillcolor=EXTERNAL_COLOR,
         )
 
 
@@ -165,7 +196,13 @@ class Datastore(Element):
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
-            self.identifier, shape="cylinder", label=self.name, fontsize=FONTSIZE
+            self.identifier,
+            shape="cylinder",
+            label=self.name,
+            fontsize=FONTSIZE,
+            fontname=FONTFACE,
+            style="filled",
+            fillcolor=DATASTORE_COLOR,
         )
 
 
@@ -208,6 +245,9 @@ class Boundary(Element):
             graphviz_nodes,
             name="cluster_{}".format(str(self.identifier)),
             label=self.name,
-            style="dotted",
-            fontsize=FONTSIZE,
+            style="rounded, filled",
+            fillcolor="#55555522",
+            fontsize=FONTSIZE + 2,
+            fontname=FONTFACE,
+            labeljust="l",
         )

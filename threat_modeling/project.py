@@ -3,7 +3,13 @@ from uuid import UUID
 
 from typing import Dict, List, Optional, Union
 
-from threat_modeling.data_flow import Boundary, Element, Dataflow, BidirectionalDataflow
+from threat_modeling.data_flow import (
+    Boundary,
+    Element,
+    Dataflow,
+    BidirectionalDataflow,
+    FONTFACE,
+)
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.threats import Threat
 
@@ -88,7 +94,7 @@ class ThreatModel:
         self.threats.append(threat)
 
     def draw(self, output: str = "dfd.png") -> None:
-        dfd = pygraphviz.AGraph()
+        dfd = pygraphviz.AGraph(fontname=FONTFACE)
 
         elements_to_draw = self.elements.copy()
 
