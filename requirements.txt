@@ -1,1 +1,2 @@
 pygraphviz==1.5
+PyYAML==5.3
