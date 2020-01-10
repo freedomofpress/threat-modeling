@@ -1,17 +1,23 @@
 import pygraphviz
 from uuid import UUID
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Type, TypeVar, Union, Sequence
 
 from threat_modeling.data_flow import (
     Boundary,
     Element,
     Dataflow,
     BidirectionalDataflow,
+    ExternalEntity,
+    Process,
+    Datastore,
     FONTFACE,
 )
 from threat_modeling.exceptions import DuplicateIdentifier
+from threat_modeling.serialization import load
 from threat_modeling.threats import Threat
+
+TM = TypeVar("TM", bound="ThreatModel")
 
 
 class ThreatModel:
@@ -23,6 +29,15 @@ class ThreatModel:
         self.elements: List[Element] = []
         self.threats: List[Threat] = []
         self.boundaries: List[Boundary] = []
+
+    @classmethod
+    def load(cls: Type[TM], config: str) -> TM:
+        (name, description, nodes, boundaries, dataflows) = load(config)
+        threat_model = cls(name, description)
+        threat_model.add_elements(nodes)
+        threat_model.add_elements(boundaries)
+        threat_model.add_elements(dataflows)
+        return threat_model
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
         if other in [x.identifier for x in self.elements]:
@@ -48,7 +63,18 @@ class ThreatModel:
 
         raise KeyError
 
-    def add_element(self, element: Element) -> None:
+    def add_element(
+        self,
+        element: Union[
+            Element,
+            ExternalEntity,
+            Process,
+            Datastore,
+            Boundary,
+            Dataflow,
+            BidirectionalDataflow,
+        ],
+    ) -> None:
         if element.identifier in [x.identifier for x in self.elements]:
             raise DuplicateIdentifier(
                 "already have {} in this threat model".format(element.identifier)
@@ -92,6 +118,23 @@ class ThreatModel:
             raise DuplicateIdentifier
 
         self.threats.append(threat)
+
+    def add_elements(
+        self,
+        elements: Sequence[
+            Union[
+                Element,
+                ExternalEntity,
+                Process,
+                Datastore,
+                Boundary,
+                Dataflow,
+                BidirectionalDataflow,
+            ]
+        ],
+    ) -> None:
+        for element in elements:
+            self.add_element(element)
 
     def draw(self, output: str = "dfd.png") -> None:
         dfd = pygraphviz.AGraph(fontname=FONTFACE)

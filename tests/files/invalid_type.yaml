@@ -1,0 +1,23 @@
+---
+name: Example
+description: Example threat model
+
+nodes:
+  - name: Settings File
+    type: InvalidType
+    id: DFD1
+
+  - name: Game Application
+    type: Process
+    id: DFD5
+
+boundaries:
+  - name: System
+    members: 
+      - DFD1
+
+dataflows:
+  - name: Settings
+    first_node: DFD1
+    second_node: DFD5
+    bidirectional: True
