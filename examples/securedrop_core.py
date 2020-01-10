@@ -284,7 +284,7 @@ app_server = Boundary(
     securedrop_app.identifier, in_mem_submission.identifier, asymmetric_encryption.identifier,
     encrypted_submission.identifier, app_database.identifier, ossec_agent.identifier,
     apt_client_app.identifier, ntp_client_app.identifier, dns_client_app.identifier,
-    securedrop_app_config.identifier, apache_web_server.identifier
+    securedrop_app_config.identifier, apache_web_server.identifier, source_interface.identifier
 ])
 boundaries.append(app_server)
 
@@ -295,11 +295,9 @@ mon_server = Boundary(
     ssh_mon_interface.identifier, ssh_mon_daemon.identifier])
 boundaries.append(mon_server)
 
-"""
 securedrop_area = Boundary("SecureDrop Area",
     [hardware_firewall.identifier, app_server.identifier, mon_server.identifier])
 boundaries.append(securedrop_area)
-"""
 
 external_services = Boundary(
     "External Services", 
@@ -325,11 +323,11 @@ secure_viewing_station = Boundary(
     [decryption.identifier, decrypted_submission.identifier, sanitization.identifier,
     sanitized_document.identifier])
 boundaries.append(secure_viewing_station)
-#airgapped_area = Boundary(
-#    "Airgapped Viewing Area",
-#    [secure_viewing_station.identifier, encrypted_document.identifier, printer.identifier]
-#)
-#boundaries.add(airgapped_area)
+airgapped_area = Boundary(
+    "Airgapped Viewing Area",
+    [secure_viewing_station.identifier, encrypted_document.identifier, printer.identifier]
+)
+boundaries.append(airgapped_area)
 
 for boundary in boundaries:
     tm.add_element(boundary)

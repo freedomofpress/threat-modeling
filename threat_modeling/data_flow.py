@@ -176,26 +176,20 @@ class Boundary(Element):
         members: List[Union[str, UUID]],
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = None,
+        parent: Optional[Element] = None,
+        nodes: Optional[List[Element]] = None,
     ):
         super().__init__(name, identifier, description)
-        self.members = members  # Contains identifiers for nodes in this boundary
+        self.members = members  # Contains identifiers for boundaries, nodes in this boundary
+        self.parent = parent
+        self.nodes = []
 
     def __str__(self) -> str:
         return "<Boundary: {}>".format(self.name)
 
     def draw(self, graph: AGraph) -> None:
-        for member in list(self.members):
-            # get_subgraph() returns None if the subgraph does not exist.
-            subgraph = graph.get_subgraph("cluster_" + str(member))
-            if subgraph:
-                # Add nodes for any boundaries passed as members
-                for node in subgraph.nodes():
-                    self.members.append(node)
-                self.members.remove(member)
-                subgraph = None
-
         # This will raise KeyError if a node is not present in the graph
-        graphviz_nodes = [graph.get_node(x) for x in self.members]
+        graphviz_nodes = [graph.get_node(x) for x in self.nodes]
 
         # Handle nested subgraphs
         subgraphs_to_use = set()
