@@ -26,7 +26,17 @@ class ThreatModel:
     ) -> None:
         self.name = name
         self.description = description
-        self.elements: List[Element] = []
+        self.elements: List[
+            Union[
+                Element,
+                ExternalEntity,
+                Process,
+                Datastore,
+                Boundary,
+                Dataflow,
+                BidirectionalDataflow,
+            ]
+        ] = []
         self.threats: List[Threat] = []
         self.boundaries: List[Boundary] = []
 
@@ -48,7 +58,18 @@ class ThreatModel:
 
         return False
 
-    def __getitem__(self, item: Union[str, UUID]) -> Union[Element, Threat]:
+    def __getitem__(
+        self, item: Union[str, UUID]
+    ) -> Union[
+        Element,
+        ExternalEntity,
+        Process,
+        Datastore,
+        Boundary,
+        Dataflow,
+        BidirectionalDataflow,
+        Threat,
+    ]:
         """Allow []-based retrieval of elements and threats from this object
         based on their ID"""
         for element in self.elements:
@@ -61,7 +82,7 @@ class ThreatModel:
             if threat.identifier == item:
                 return threat
 
-        raise KeyError
+        raise KeyError("Item {} not found".format(item))
 
     def add_element(
         self,
@@ -96,12 +117,14 @@ class ThreatModel:
 
         if isinstance(element, Boundary):
             self.boundaries.append(element)
+            # Members of an element will be Union[str, UUID]
             for child in element.members:
-                boundary = self[child]
-                if isinstance(boundary, Boundary):
+                child_obj = self[child]
+
+                if isinstance(child_obj, Boundary):
                     # Set Boundary.nodes to consist of the nodes
                     # TODO: investigate this mypy error, could be legitimate TypeError
-                    element.nodes += boundary.members  # type: ignore
+                    element.nodes += child_obj.members  # type: ignore
                 else:
                     # child_element = self[child]
                     # TODO: remove below type: ignore when we create an
