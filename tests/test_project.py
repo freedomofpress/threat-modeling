@@ -14,6 +14,8 @@ from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
 
+from tests.utils import assert_images_equal
+
 
 def test_threat_model_saves_elements():
     server = Element(name="server", identifier="ELEMENT1", description="My test server")
@@ -140,7 +142,7 @@ def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
         my_threat_model.add_element(http_traffic)
 
 
-def test_threat_model_draws_data_flow_diagram_two_elements():
+def test_threat_model_draws_data_flow_diagram_two_elements(request, tmpdir):
     test_id_1 = "Server"
     server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
@@ -151,7 +153,12 @@ def test_threat_model_draws_data_flow_diagram_two_elements():
     my_threat_model.add_element(server)
     my_threat_model.add_element(client)
 
-    my_threat_model.draw()
+    testname = request.node.name
+    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
+
+    my_threat_model.draw(generated_file)
+
+    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
 
 
 def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
@@ -278,7 +285,7 @@ def test_threat_model_draws_data_flow_diagram_boundary():
     my_threat_model.draw()
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary():
+def test_threat_model_draws_data_flow_diagram_nested_boundary(request, tmpdir):
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -299,10 +306,17 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary():
     my_threat_model.add_element(boundary)
     my_threat_model.add_element(boundary_2)
 
-    my_threat_model.draw()
+    testname = request.node.name
+    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
+
+    my_threat_model.draw(generated_file)
+
+    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order():
+def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(
+    request, tmpdir
+):
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -323,10 +337,17 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order():
     my_threat_model.add_element(boundary_2)
     my_threat_model.add_element(boundary)
 
-    my_threat_model.draw()
+    testname = request.node.name
+    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
+
+    my_threat_model.draw(generated_file)
+
+    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary():
+def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(
+    request, tmpdir
+):
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -345,7 +366,12 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary():
     boundary = Boundary("trust", [boundary_2.identifier, test_id_2])
     my_threat_model.add_element(boundary)
 
-    my_threat_model.draw()
+    testname = request.node.name
+    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
+
+    my_threat_model.draw(generated_file)
+
+    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
 
 
 def test_load_simple_yaml_boundaries_nodes_flows():
