@@ -39,6 +39,7 @@ class ThreatModel:
         ] = []
         self.threats: List[Threat] = []
         self.boundaries: List[Boundary] = []
+        self._generated_dot: str = ""
 
     @classmethod
     def load(cls: Type[TM], config: str) -> TM:
@@ -201,3 +202,4 @@ class ThreatModel:
                 pass
 
         dfd.draw(output, prog="dot", args="-Gdpi=300")
+        self._generated_dot = str(dfd)

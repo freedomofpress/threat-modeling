@@ -14,8 +14,6 @@ from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
 
-from tests.utils import assert_images_equal
-
 
 def test_threat_model_saves_elements():
     server = Element(name="server", identifier="ELEMENT1", description="My test server")
@@ -143,6 +141,13 @@ def test_threat_model_disallows_adding_dataflows_without_corresponding_source():
 
 
 def test_threat_model_draws_data_flow_diagram_two_elements(request, tmpdir):
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "files/{}.dot".format(request.node.name),
+    )
+    with open(test_file) as f:
+        expected_dot = f.read()
+
     test_id_1 = "Server"
     server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
@@ -153,12 +158,8 @@ def test_threat_model_draws_data_flow_diagram_two_elements(request, tmpdir):
     my_threat_model.add_element(server)
     my_threat_model.add_element(client)
 
-    testname = request.node.name
-    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
-
-    my_threat_model.draw(generated_file)
-
-    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
+    my_threat_model.draw()
+    assert my_threat_model._generated_dot == expected_dot
 
 
 def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
@@ -285,7 +286,13 @@ def test_threat_model_draws_data_flow_diagram_boundary():
     my_threat_model.draw()
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary(request, tmpdir):
+def test_threat_model_draws_data_flow_diagram_nested_boundary(tmpdir):
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "files/nested.dot"
+    )
+    with open(test_file) as f:
+        expected_dot = f.read()
+
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -293,8 +300,10 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary(request, tmpdir):
     test_id_3 = "Web application backend"
     webapp_2 = Process(name=test_id_3, identifier=test_id_3)
 
-    boundary = Boundary("trust", [test_id_1, test_id_3, test_id_2])
-    boundary_2 = Boundary("webapp", [test_id_1, test_id_3], parent=boundary)
+    boundary = Boundary("trust", [test_id_1, test_id_3, test_id_2], identifier="trust")
+    boundary_2 = Boundary(
+        "webapp", [test_id_1, test_id_3], parent=boundary, identifier="webapp"
+    )
 
     my_threat_model = ThreatModel()
 
@@ -306,17 +315,17 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary(request, tmpdir):
     my_threat_model.add_element(boundary)
     my_threat_model.add_element(boundary_2)
 
-    testname = request.node.name
-    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
-
-    my_threat_model.draw(generated_file)
-
-    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
+    my_threat_model.draw()
+    assert my_threat_model._generated_dot == expected_dot
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(
-    request, tmpdir
-):
+def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(tmpdir):
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "files/nested.dot"
+    )
+    with open(test_file) as f:
+        expected_dot = f.read()
+
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -324,8 +333,10 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(
     test_id_3 = "Web application backend"
     webapp_2 = Process(name=test_id_3, identifier=test_id_3)
 
-    boundary = Boundary("trust", [test_id_1, test_id_3, test_id_2])
-    boundary_2 = Boundary("webapp", [test_id_1, test_id_3], parent=boundary)
+    boundary = Boundary("trust", [test_id_1, test_id_3, test_id_2], identifier="trust")
+    boundary_2 = Boundary(
+        "webapp", [test_id_1, test_id_3], parent=boundary, identifier="webapp"
+    )
 
     my_threat_model = ThreatModel()
 
@@ -337,17 +348,17 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(
     my_threat_model.add_element(boundary_2)
     my_threat_model.add_element(boundary)
 
-    testname = request.node.name
-    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
-
-    my_threat_model.draw(generated_file)
-
-    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
+    my_threat_model.draw()
+    assert my_threat_model._generated_dot == expected_dot
 
 
-def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(
-    request, tmpdir
-):
+def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(tmpdir):
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "files/nested.dot"
+    )
+    with open(test_file) as f:
+        expected_dot = f.read()
+
     test_id_1 = "Web application frontend"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -361,17 +372,13 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(
     my_threat_model.add_element(db)
     my_threat_model.add_element(webapp_2)
 
-    boundary_2 = Boundary("webapp", [test_id_1, test_id_3])
+    boundary_2 = Boundary("webapp", [test_id_1, test_id_3], identifier="webapp")
     my_threat_model.add_element(boundary_2)
-    boundary = Boundary("trust", [boundary_2.identifier, test_id_2])
+    boundary = Boundary("trust", [boundary_2.identifier, test_id_2], identifier="trust")
     my_threat_model.add_element(boundary)
 
-    testname = request.node.name
-    generated_file = os.path.join(str(tmpdir), "{}.png".format(testname))
-
-    my_threat_model.draw(generated_file)
-
-    assert_images_equal("tests/baseline_images/{}.png".format(testname), generated_file)
+    my_threat_model.draw()
+    assert my_threat_model._generated_dot == expected_dot
 
 
 def test_load_simple_yaml_boundaries_nodes_flows():

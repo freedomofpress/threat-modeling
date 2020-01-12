@@ -1,0 +1,14 @@
+strict graph "" {
+	graph [fontname="Times-Roman"];
+	node [label="\N"];
+	Server	 [fillcolor="#DF9AA4",
+		fontname="Times-Roman",
+		fontsize=10.0,
+		label=Server,
+		style=filled];
+	Client	 [fillcolor="#DF9AA4",
+		fontname="Times-Roman",
+		fontsize=10.0,
+		label=Client,
+		style=filled];
+}
