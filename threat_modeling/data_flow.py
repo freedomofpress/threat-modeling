@@ -214,7 +214,7 @@ class Boundary(Element):
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = None,
         parent: Optional[Element] = None,
-        nodes: Optional[List[Element]] = None,
+        nodes: Optional[List[Union[str, UUID]]] = None,
     ):
         super().__init__(name, identifier, description)
         self.members = (

@@ -1,0 +1,213 @@
+---
+name: SecureDrop Workstation
+description: SecureDrop workstation beta release
+
+nodes:
+  - name: Journalist Interface
+    type: Process
+    id: DFD1
+
+  - name: SecureDrop Dedicated Hardware Firewall
+    type: Element
+    id: DFD2
+
+  - name: NetVM
+    type: Element
+    id: DFD3
+
+  - name: FirewallVM
+    type: Element
+    id: DFD4
+
+  - name: Source Interface
+    type: Process
+    id: DFD5
+  
+  - name: tor
+    type: Process
+    id: DFD6
+
+  - name: HidServAuth/.client_auth
+    type: Datastore
+    id: DFD7
+
+  - name: SecureDrop Proxy
+    type: Process
+    id: DFD8
+
+  - name: SecureDrop client
+    type: Process
+    id: DFD9
+
+  - name: Journalist
+    type: ExternalEntity
+    id: DFD10
+
+  - name: Decrypted submissions (db + files)
+    type: Datastore
+    id: DFD11
+
+  - name: .desktop MIME handler
+    type: Process
+    id: DFD12
+
+  - name: Anything (e.g. evince)
+    type: Process
+    id: DFD13
+
+  - name: Centralized logs
+    type: Datastore
+    id: DFD14
+
+  - name: SecureDrop Export
+    type: Process
+    id: DFD15
+
+  - name: USB Transfer Device
+    type: Datastore
+    id: DFD16
+
+  - name: gnupg
+    type: Process
+    id: DFD17
+
+  - name: Submission Private key
+    type: Datastore
+    id: DFD18
+
+boundaries:
+  - name: App Server
+    id: BOUND2
+    members:
+      - DFD1
+      - DFD5
+
+  - name: SecureDrop Area
+    id: BOUND1
+    members:
+      - BOUND2
+      - DFD2
+
+  - name: sd-proxy
+    id: sd-proxy
+    members:
+      - DFD8
+
+  - name: sd-log
+    id: sd-log
+    members:
+      - DFD14
+
+  - name: sd-svs
+    id: sd-svs
+    members:
+      - DFD9
+      - DFD11
+      - DFD12
+
+  - name: sd-svs-disp (Disposable)
+    id: sd-svs-disp
+    members: 
+      - DFD13
+
+  - name: sd-export-usb (Disposable)
+    id: sd-export-usb
+    members:
+      - DFD15
+
+  - name: sd-gpg
+    id: sd-gpg
+    members:
+      - DFD17
+      - DFD18
+
+  - name: sd-whonix
+    id: sd-whonix
+    members:
+      - DFD6
+      - DFD7
+
+  - name: SecureDrop Workstation (QubesOS)
+    members:
+      - DFD3
+      - DFD4
+      - DFD6
+      - sd-proxy
+      - sd-whonix
+      - sd-gpg
+      - sd-export-usb
+      - sd-svs-disp
+      - sd-svs
+      - sd-log
+      - DFD16
+
+dataflows:
+  - name: tor
+    first_node: DFD3
+    second_node: DFD2
+    bidirectional: True
+  
+  - name: tor
+    first_node: DFD2
+    second_node: DFD1
+    bidirectional: True
+  
+  - name: tor 
+    first_node: DFD3
+    second_node: DFD4
+    bidirectional: True
+  
+  - name: tor
+    first_node: DFD6
+    second_node: DFD4
+    bidirectional: True
+
+  - name: read
+    first_node: DFD7
+    second_node: DFD6
+
+  - name: http
+    first_node: DFD6
+    second_node: DFD8
+    bidirectional: True
+
+  - name: qrexec
+    first_node: DFD9
+    second_node: DFD8
+    bidirectional: True
+
+  - name: User Input
+    first_node: DFD10
+    second_node: DFD9
+
+  - name: copy/open
+    first_node: DFD9
+    second_node: DFD11
+
+  - name: qvm-open-in-vm
+    first_node: DFD12
+    second_node: DFD13
+
+  - name: qrexec
+    first_node: DFD9
+    second_node: DFD14
+
+  - name: qvm-open-in-vm
+    first_node: DFD9
+    second_node: DFD15
+  
+  - name: copy/open
+    first_node: DFD15
+    second_node: DFD16
+
+  - name: qubes-gpg-client
+    first_node: DFD9
+    second_node: DFD17
+  
+  - name: read
+    first_node: DFD17
+    second_node: DFD18
+
+  - name: subprocess
+    first_node: DFD9
+    second_node: DFD12
