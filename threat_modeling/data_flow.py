@@ -1,4 +1,5 @@
 from pygraphviz import AGraph
+import reprlib
 from uuid import UUID, uuid4
 
 from typing import List, Optional, Type, TypeVar, Union
@@ -36,11 +37,14 @@ class Element:
         self.description = description
 
     def __str__(self) -> str:
-        return "<Element: {}>".format(self.name)
+        return "<{}: {}>".format(self.__class__.__name__, self.name)
 
     def __repr__(self) -> str:
-        return 'Element("{}", "{}", "{}")'.format(
-            self.name, self.identifier, self.description
+        return '{}("{}", "{}", "{}")'.format(
+            self.__class__.__name__,
+            self.name,
+            self.identifier,
+            reprlib.repr(self.description),
         )
 
     def __eq__(self, other: object) -> bool:
@@ -100,7 +104,19 @@ class Dataflow(Element):
         )
 
     def __str__(self) -> str:
-        return "<Dataflow: {}>".format(self.name)
+        return "<Dataflow {}: {} -> {}>".format(
+            self.name, self.first_id, self.second_id
+        )
+
+    def __repr__(self) -> str:
+        return '{}("{}", "{}, "{}", "{}", "{}")'.format(
+            self.__class__.__name__,
+            self.first_id,
+            self.second_id,
+            self.name,
+            self.identifier,
+            reprlib.repr(self.description),
+        )
 
     def draw(self, graph: AGraph) -> None:
         source_node = graph.get_node(self.first_id)
@@ -129,7 +145,9 @@ class BidirectionalDataflow(Dataflow):
         super().__init__(first_id, second_id, name, identifier, description)
 
     def __str__(self) -> str:
-        return "<BidirectionalDataflow: {}>".format(self.name)
+        return "<BidirectionalDataflow {}: {} <-> {}>".format(
+            self.name, self.first_id, self.second_id
+        )
 
     def draw(self, graph: AGraph) -> None:
         node_1 = graph.get_node(self.first_id)
@@ -155,9 +173,6 @@ class Process(Element):
     ):
         super().__init__(name, identifier, description)
 
-    def __str__(self) -> str:
-        return "<Process: {}>".format(self.name)
-
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
             self.identifier,
@@ -178,9 +193,6 @@ class ExternalEntity(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def __str__(self) -> str:
-        return "<ExternalEntity: {}>".format(self.name)
 
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
@@ -236,7 +248,17 @@ class Boundary(Element):
         self.nodes: List[Element] = []
 
     def __str__(self) -> str:
-        return "<Boundary: {}>".format(self.name)
+        return "<Boundary {}: {}>".format(self.name, reprlib.repr(self.members))
+
+    def __repr__(self) -> str:
+        return 'Boundary("{}", {}, "{}", "{}", {}, {})'.format(
+            self.name,
+            reprlib.repr(self.members),
+            self.identifier,
+            reprlib.repr(self.description),
+            self.parent,
+            reprlib.repr(self.nodes),
+        )
 
     def draw(self, graph: AGraph) -> None:
         # This will raise KeyError if a node is not present in the graph
