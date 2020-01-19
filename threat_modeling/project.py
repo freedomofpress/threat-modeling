@@ -1,4 +1,5 @@
 import pygraphviz
+import reprlib
 from uuid import UUID
 
 from typing import Dict, List, Optional, Type, TypeVar, Union, Sequence
@@ -14,7 +15,7 @@ from threat_modeling.data_flow import (
     FONTFACE,
 )
 from threat_modeling.exceptions import DuplicateIdentifier
-from threat_modeling.serialization import load
+from threat_modeling.serialization import load, save
 from threat_modeling.threats import Threat
 
 TM = TypeVar("TM", bound="ThreatModel")
@@ -38,17 +39,20 @@ class ThreatModel:
             ]
         ] = []
         self.threats: List[Threat] = []
-        self.boundaries: List[Boundary] = []
-        self._generated_dot: str = ""
 
-    @classmethod
-    def load(cls: Type[TM], config: str) -> TM:
-        (name, description, nodes, boundaries, dataflows) = load(config)
-        threat_model = cls(name, description)
-        threat_model.add_elements(nodes)
-        threat_model.add_elements(boundaries)
-        threat_model.add_elements(dataflows)
-        return threat_model
+        self._generated_dot: str = ""
+        self._boundaries: List[Boundary] = []
+
+    def __str__(self) -> str:
+        return "<ThreatModel {}>".format(self.name)
+
+    def __repr__(self) -> str:
+        return "ThreatModel('{}', '{}', {}, {})".format(
+            self.name,
+            reprlib.repr(self.description),
+            reprlib.repr(self.elements),
+            reprlib.repr(self.threats),
+        )
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
         if other in [x.identifier for x in self.elements]:
@@ -85,6 +89,18 @@ class ThreatModel:
 
         raise KeyError("Item {} not found".format(item))
 
+    @classmethod
+    def load(cls: Type[TM], config: str) -> TM:
+        (name, description, nodes, boundaries, dataflows) = load(config)
+        threat_model = cls(name, description)
+        threat_model.add_elements(nodes)
+        threat_model.add_elements(boundaries)
+        threat_model.add_elements(dataflows)
+        return threat_model
+
+    def save(self, config: Optional[str] = None) -> None:
+        save(self.elements, self.name, self.description, config)
+
     def add_element(
         self,
         element: Union[
@@ -117,7 +133,11 @@ class ThreatModel:
                     )
 
         if isinstance(element, Boundary):
-            self.boundaries.append(element)
+            if element.parent:
+                if isinstance(element.parent, str):
+                    parent_element = self[element.parent]
+                    element.parent = parent_element
+            self._boundaries.append(element)
             # Members of an element will be Union[str, UUID]
             for child in element.members:
                 child_obj = self[child]
@@ -167,7 +187,7 @@ class ThreatModel:
 
         # Iterate through the boundaries. If there's a a boundary in the members,
         # set the parent attribute.
-        for boundary in self.boundaries:
+        for boundary in self._boundaries:
             elements_to_draw.remove(boundary)
             for child in boundary.members:
                 child_boundary = self[child]
@@ -179,7 +199,7 @@ class ThreatModel:
             Optional[Union[Boundary, Element]], List[Union[Boundary, Element]]
         ] = {}
         boundary_tree[None] = []
-        for boundary in self.boundaries:
+        for boundary in self._boundaries:
             try:
                 boundary_tree[boundary.parent].append(boundary)
             except KeyError:

@@ -64,6 +64,19 @@ def test_dataflow_str():
         name="Primary Server", identifier=test_id, first_id="teehee", second_id="butts"
     )
     assert "Dataflow" in str(element)
+    assert "->" in str(element)
+
+
+def test_dataflow_repr():
+    test_id = "Server"
+    element = Dataflow(
+        name="Primary Server", identifier=test_id, first_id="teehee", second_id="butts"
+    )
+    assert "Dataflow" in repr(element)
+    assert element.name in repr(element)
+    assert element.identifier in repr(element)
+    assert element.first_id in repr(element)
+    assert element.second_id in repr(element)
 
 
 def test_bidirectional_dataflow_with_missing_id():
@@ -98,3 +111,9 @@ def test_datastore_str():
 def test_boundary_str():
     element = Boundary("foo", [])
     assert "Boundary" in str(element)
+
+
+def test_boundary_repr():
+    element = Boundary("foo", [])
+    assert "Boundary" in repr(element)
+    assert "foo" in repr(element)

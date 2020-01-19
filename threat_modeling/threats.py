@@ -1,3 +1,4 @@
+import reprlib
 from uuid import uuid4, UUID
 
 from typing import Optional, Union
@@ -16,3 +17,9 @@ class Threat:
 
         if description:
             self.description = description
+
+    def __str__(self) -> str:
+        return "<Threat {}: {}>".format(self.identifier, self.description)
+
+    def __repr__(self) -> str:
+        return "Threat({}, {})".format(self.identifier, reprlib.repr(self.description))

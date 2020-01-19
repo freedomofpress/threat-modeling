@@ -1,4 +1,5 @@
 from pygraphviz import AGraph
+import reprlib
 from uuid import UUID, uuid4
 
 from typing import List, Optional, Type, TypeVar, Union
@@ -18,6 +19,10 @@ T = TypeVar("T", bound="Dataflow")
 
 
 class Element:
+    SHAPE: Optional[str] = None  # Default
+    STYLE = "filled"
+    COLOR = ELEMENT_COLOR
+
     def __init__(
         self,
         name: str,
@@ -36,25 +41,49 @@ class Element:
         self.description = description
 
     def __str__(self) -> str:
-        return "<Element: {}>".format(self.name)
+        return "<{}: {}>".format(self.__class__.__name__, self.name)
 
     def __repr__(self) -> str:
-        return 'Element("{}", "{}", "{}")'.format(
-            self.name, self.identifier, self.description
+        return '{}("{}", "{}", "{}")'.format(
+            self.__class__.__name__,
+            self.name,
+            self.identifier,
+            reprlib.repr(self.description),
         )
 
+    def __eq__(self, other: object) -> bool:
+        if (
+            self.name == getattr(other, "name", None)
+            and self.identifier == getattr(other, "identifier", None)
+            and self.description == getattr(other, "description", None)
+        ):
+            return True
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.identifier) ^ hash(self.description)
+
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            label=self.name,
-            style="filled",
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            fillcolor=ELEMENT_COLOR,
-        )
+        kwargs = {
+            "label": self.name,
+            "fontsize": FONTSIZE,
+            "fontname": FONTFACE,
+            "style": self.STYLE,
+            "fillcolor": self.COLOR,
+        }
+        if self.SHAPE:
+            graph.add_node(
+                self.identifier, **kwargs, shape=self.SHAPE,
+            )
+        else:
+            graph.add_node(
+                self.identifier, **kwargs,
+            )
 
 
 class Dataflow(Element):
+    DIRECTION = "forward"
+
     def __init__(
         self,
         first_id: Union[str, UUID],
@@ -88,7 +117,19 @@ class Dataflow(Element):
         )
 
     def __str__(self) -> str:
-        return "<Dataflow: {}>".format(self.name)
+        return "<Dataflow {}: {} -> {}>".format(
+            self.name, self.first_id, self.second_id
+        )
+
+    def __repr__(self) -> str:
+        return '{}("{}", "{}, "{}", "{}", "{}")'.format(
+            self.__class__.__name__,
+            self.first_id,
+            self.second_id,
+            self.name,
+            self.identifier,
+            reprlib.repr(self.description),
+        )
 
     def draw(self, graph: AGraph) -> None:
         source_node = graph.get_node(self.first_id)
@@ -97,7 +138,7 @@ class Dataflow(Element):
         graph.add_edge(
             source_node,
             dest_node,
-            dir="forward",
+            dir=self.DIRECTION,
             arrowhead="normal",
             label=" " + self.name + " ",
             fontsize=FONTSIZE - 2,
@@ -106,6 +147,8 @@ class Dataflow(Element):
 
 
 class BidirectionalDataflow(Dataflow):
+    DIRECTION = "both"
+
     def __init__(
         self,
         first_id: Union[str, UUID],
@@ -117,24 +160,16 @@ class BidirectionalDataflow(Dataflow):
         super().__init__(first_id, second_id, name, identifier, description)
 
     def __str__(self) -> str:
-        return "<BidirectionalDataflow: {}>".format(self.name)
-
-    def draw(self, graph: AGraph) -> None:
-        node_1 = graph.get_node(self.first_id)
-        node_2 = graph.get_node(self.second_id)
-        # We draw edges with a bit of padding around the label to prevent overlapping.
-        graph.add_edge(
-            node_1,
-            node_2,
-            dir="both",
-            arrowhead="normal",
-            label=" " + self.name + " ",
-            fontsize=FONTSIZE - 2,
-            fontname=FONTFACE,
+        return "<BidirectionalDataflow {}: {} <-> {}>".format(
+            self.name, self.first_id, self.second_id
         )
 
 
 class Process(Element):
+    SHAPE = "circle"
+    STYLE = "filled"
+    COLOR = PROCESS_COLOR
+
     def __init__(
         self,
         name: str,
@@ -142,23 +177,13 @@ class Process(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def __str__(self) -> str:
-        return "<Process: {}>".format(self.name)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="circle",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=PROCESS_COLOR,
-        )
 
 
 class ExternalEntity(Element):
+    SHAPE = "rectangle"
+    STYLE = "filled"
+    COLOR = EXTERNAL_COLOR
+
     def __init__(
         self,
         name: str,
@@ -166,23 +191,13 @@ class ExternalEntity(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def __str__(self) -> str:
-        return "<ExternalEntity: {}>".format(self.name)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="rectangle",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=EXTERNAL_COLOR,
-        )
 
 
 class Datastore(Element):
+    SHAPE = "cylinder"
+    STYLE = "filled"
+    COLOR = DATASTORE_COLOR
+
     def __init__(
         self,
         name: str,
@@ -190,20 +205,6 @@ class Datastore(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def __str__(self) -> str:
-        return "<Datastore: {}>".format(self.name)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="cylinder",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=DATASTORE_COLOR,
-        )
 
 
 class Boundary(Element):
@@ -224,7 +225,17 @@ class Boundary(Element):
         self.nodes: List[Element] = []
 
     def __str__(self) -> str:
-        return "<Boundary: {}>".format(self.name)
+        return "<Boundary {}: {}>".format(self.name, reprlib.repr(self.members))
+
+    def __repr__(self) -> str:
+        return 'Boundary("{}", {}, "{}", "{}", {}, {})'.format(
+            self.name,
+            reprlib.repr(self.members),
+            self.identifier,
+            reprlib.repr(self.description),
+            self.parent,
+            reprlib.repr(self.nodes),
+        )
 
     def draw(self, graph: AGraph) -> None:
         # This will raise KeyError if a node is not present in the graph
