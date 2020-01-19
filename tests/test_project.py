@@ -15,6 +15,16 @@ from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
 
 
+def test_threat_model_str():
+    my_threat_model = ThreatModel("my name")
+    assert "my name" in str(my_threat_model)
+
+
+def test_threat_model_repr():
+    my_threat_model = ThreatModel("my name")
+    assert "my name" in repr(my_threat_model)
+
+
 def test_threat_model_saves_elements():
     server = Element(name="server", identifier="ELEMENT1", description="My test server")
     my_threat_model = ThreatModel()
@@ -389,7 +399,7 @@ def test_load_simple_yaml_boundaries_nodes_flows():
     model = ThreatModel.load(test_file)
 
     assert len(model.elements) == 4
-    assert len(model.boundaries) == 1
+    assert len(model._boundaries) == 1
 
 
 def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary_save(
