@@ -14,7 +14,7 @@ from threat_modeling.data_flow import (
     FONTFACE,
 )
 from threat_modeling.exceptions import DuplicateIdentifier
-from threat_modeling.serialization import load
+from threat_modeling.serialization import load, save
 from threat_modeling.threats import Threat
 
 TM = TypeVar("TM", bound="ThreatModel")
@@ -49,6 +49,9 @@ class ThreatModel:
         threat_model.add_elements(boundaries)
         threat_model.add_elements(dataflows)
         return threat_model
+
+    def save(self, config: Optional[str] = None) -> None:
+        save(self.elements, self.name, self.description, config)
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
         if other in [x.identifier for x in self.elements]:
@@ -117,6 +120,10 @@ class ThreatModel:
                     )
 
         if isinstance(element, Boundary):
+            if element.parent:
+                if isinstance(element.parent, str):
+                    parent_element = self[element.parent]
+                    element.parent = parent_element
             self.boundaries.append(element)
             # Members of an element will be Union[str, UUID]
             for child in element.members:

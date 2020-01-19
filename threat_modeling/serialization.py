@@ -1,6 +1,7 @@
+import time
 import yaml
 
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from threat_modeling.data_flow import (
     Element,
@@ -80,3 +81,49 @@ def load(
     description = config_data.get("description", None)
 
     return (name, description, nodes, boundaries, dataflows)
+
+
+def save(
+    elements: List[Element],
+    name: Optional[str],
+    description: Optional[str],
+    config: Optional[str],
+) -> None:
+
+    if not config:
+        config = "threat_model_{}.yaml".format(time.strftime("%Y%m%d-%H%M%S"))
+
+    dataflows = []
+    nodes = []
+    boundaries = []
+    for element in elements:
+        element_dict = {"id": str(element.identifier)}
+        if element.name:
+            element_dict.update({"name": element.name})
+        if element.description:
+            element_dict.update({"description": element.description})
+        if isinstance(element, (Dataflow, BidirectionalDataflow)):
+            if isinstance(element, BidirectionalDataflow):
+                element_dict.update({"bidirectional": str(True)})
+            element_dict.update(
+                {
+                    "first_node": str(element.first_id),
+                    "second_node": str(element.second_id),
+                }
+            )
+            dataflows.append(element_dict)
+        elif isinstance(element, Boundary):
+            if element.parent:
+                element_dict.update({"parent": str(element.parent.identifier)})
+            element_dict.update({"members": str([str(x) for x in element.members])})
+            boundaries.append(element_dict)
+        else:
+            element_dict.update({"type": type(element).__name__})
+            nodes.append(element_dict)
+
+    with open(config, "w") as f:
+        yaml.dump({"name": name}, f)
+        yaml.dump({"description": description}, f)
+        yaml.dump({"nodes": nodes}, f)
+        yaml.dump({"dataflows": dataflows}, f)
+        yaml.dump({"boundaries": boundaries}, f)

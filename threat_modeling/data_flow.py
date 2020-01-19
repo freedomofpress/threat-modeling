@@ -43,6 +43,18 @@ class Element:
             self.name, self.identifier, self.description
         )
 
+    def __eq__(self, other: object) -> bool:
+        if (
+            self.name == getattr(other, "name", None)
+            and self.identifier == getattr(other, "identifier", None)
+            and self.description == getattr(other, "description", None)
+        ):
+            return True
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.name) ^ hash(self.identifier) ^ hash(self.description)
+
     def draw(self, graph: AGraph) -> None:
         graph.add_node(
             self.identifier,
