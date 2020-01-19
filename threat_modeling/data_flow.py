@@ -19,6 +19,10 @@ T = TypeVar("T", bound="Dataflow")
 
 
 class Element:
+    SHAPE: Optional[str] = None  # Default
+    STYLE = "filled"
+    COLOR = ELEMENT_COLOR
+
     def __init__(
         self,
         name: str,
@@ -60,17 +64,26 @@ class Element:
         return hash(self.name) ^ hash(self.identifier) ^ hash(self.description)
 
     def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            label=self.name,
-            style="filled",
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            fillcolor=ELEMENT_COLOR,
-        )
+        kwargs = {
+            "label": self.name,
+            "fontsize": FONTSIZE,
+            "fontname": FONTFACE,
+            "style": self.STYLE,
+            "fillcolor": self.COLOR,
+        }
+        if self.SHAPE:
+            graph.add_node(
+                self.identifier, **kwargs, shape=self.SHAPE,
+            )
+        else:
+            graph.add_node(
+                self.identifier, **kwargs,
+            )
 
 
 class Dataflow(Element):
+    DIRECTION = "forward"
+
     def __init__(
         self,
         first_id: Union[str, UUID],
@@ -125,7 +138,7 @@ class Dataflow(Element):
         graph.add_edge(
             source_node,
             dest_node,
-            dir="forward",
+            dir=self.DIRECTION,
             arrowhead="normal",
             label=" " + self.name + " ",
             fontsize=FONTSIZE - 2,
@@ -134,6 +147,8 @@ class Dataflow(Element):
 
 
 class BidirectionalDataflow(Dataflow):
+    DIRECTION = "both"
+
     def __init__(
         self,
         first_id: Union[str, UUID],
@@ -149,22 +164,12 @@ class BidirectionalDataflow(Dataflow):
             self.name, self.first_id, self.second_id
         )
 
-    def draw(self, graph: AGraph) -> None:
-        node_1 = graph.get_node(self.first_id)
-        node_2 = graph.get_node(self.second_id)
-        # We draw edges with a bit of padding around the label to prevent overlapping.
-        graph.add_edge(
-            node_1,
-            node_2,
-            dir="both",
-            arrowhead="normal",
-            label=" " + self.name + " ",
-            fontsize=FONTSIZE - 2,
-            fontname=FONTFACE,
-        )
-
 
 class Process(Element):
+    SHAPE = "circle"
+    STYLE = "filled"
+    COLOR = PROCESS_COLOR
+
     def __init__(
         self,
         name: str,
@@ -172,20 +177,13 @@ class Process(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="circle",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=PROCESS_COLOR,
-        )
 
 
 class ExternalEntity(Element):
+    SHAPE = "rectangle"
+    STYLE = "filled"
+    COLOR = EXTERNAL_COLOR
+
     def __init__(
         self,
         name: str,
@@ -193,20 +191,13 @@ class ExternalEntity(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="rectangle",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=EXTERNAL_COLOR,
-        )
 
 
 class Datastore(Element):
+    SHAPE = "cylinder"
+    STYLE = "filled"
+    COLOR = DATASTORE_COLOR
+
     def __init__(
         self,
         name: str,
@@ -214,20 +205,6 @@ class Datastore(Element):
         description: Optional[str] = None,
     ):
         super().__init__(name, identifier, description)
-
-    def __str__(self) -> str:
-        return "<Datastore: {}>".format(self.name)
-
-    def draw(self, graph: AGraph) -> None:
-        graph.add_node(
-            self.identifier,
-            shape="cylinder",
-            label=self.name,
-            fontsize=FONTSIZE,
-            fontname=FONTFACE,
-            style="filled",
-            fillcolor=DATASTORE_COLOR,
-        )
 
 
 class Boundary(Element):
