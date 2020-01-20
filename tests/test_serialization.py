@@ -57,9 +57,7 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
 
     tm = ThreatModel.load(test_file)
 
-    test_save_file = "{}.yaml".format(request.node.name)
-
-    tm.save(test_save_file)
+    config = tm.save()
 
     (
         saved_name,
@@ -67,7 +65,7 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
         saved_nodes,
         saved_boundaries,
         saved_dataflows,
-    ) = load(test_save_file)
+    ) = load(config)
 
     assert tm.name == saved_name
     assert tm.description == saved_description

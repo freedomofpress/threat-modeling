@@ -94,8 +94,9 @@ class ThreatModel:
         threat_model.add_elements(dataflows)
         return threat_model
 
-    def save(self, config: Optional[str] = None) -> None:
-        save(list(self.elements.values()), self.name, self.description, config)
+    def save(self, config: Optional[str] = None) -> str:
+        config = save(list(self.elements.values()), self.name, self.description, config)
+        return config
 
     def _check_for_duplicate_items(
         self,
