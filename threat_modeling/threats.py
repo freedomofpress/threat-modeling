@@ -21,6 +21,15 @@ class ThreatStatus(Enum):
     OUT_OF_SCOPE = "Out of scope"
 
 
+class CategoricalScore(Enum):
+    NONE = 0
+    VERY_LOW = 1
+    LOW = 2
+    MEDIUM = 3
+    HIGH = 4
+    CRITICAL = 5
+
+
 class Threat:
     """
     Each threat object represents a possible attack or "thing that can go
@@ -39,6 +48,9 @@ class Threat:
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = "",
         child_threats: Optional[List[Type[TH]]] = None,
+        status: Optional[ThreatStatus] = ThreatStatus.UNMANAGED,
+        base_impact: Optional[str] = None,
+        base_exploitability: Optional[str] = None,
     ):
         """
         Args:
@@ -52,6 +64,12 @@ class Threat:
             child_threats (list, optional): threats that become possible if this
                 threat is successfully exploited. This is used for the construction
                 and display of attack trees.
+            status (ThreatStatus, optional): the mitigation status of this threat.
+                Defaults to unmanaged if no status is provided.
+            base_impact (str, optional): the impact of this vulnerability
+                before any mitigations have been applied.
+            base_exploitability (str, optional): the ease of exploiting
+                this threat.
         """
 
         if not identifier:
@@ -60,11 +78,32 @@ class Threat:
         self.name = name
         self.identifier = identifier
         self.description = description
+        self.status = status
 
         if child_threats:
             self.child_threats = child_threats.copy()
         else:
             self.child_threats = []
+
+        # Metrics
+        if base_impact:
+            base_impact_lookup = CategoricalScore[base_impact.upper()]
+            self.base_impact: Optional[CategoricalScore] = base_impact_lookup
+        else:
+            self.base_impact = None
+
+        if base_exploitability:
+            base_exploitability_lookup = CategoricalScore[base_exploitability.upper()]
+            self.base_exploitability: Optional[
+                CategoricalScore
+            ] = base_exploitability_lookup
+        else:
+            self.base_exploitability = None
+
+        if not self.base_impact or not self.base_exploitability:
+            self.base_risk = None
+        else:
+            self.base_risk = self.base_impact.value * self.base_exploitability.value
 
     def __str__(self) -> str:
         return "<Threat {}: {}>".format(self.identifier, self.name)

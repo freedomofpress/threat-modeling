@@ -32,3 +32,13 @@ def test_attack_trees():
     attack_tree = AttackTree(my_threat)
     attack_tree.draw()
     assert attack_tree._generated_dot == expected_dot
+
+
+def test_set_metrics():
+    my_threat = Threat(
+        "Attacker breaks into datacenter",
+        "THREAT1",
+        base_impact="high",
+        base_exploitability="low",
+    )
+    assert my_threat.base_risk == 8
