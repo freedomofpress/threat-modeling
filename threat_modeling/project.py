@@ -27,7 +27,8 @@ class ThreatModel:
     ) -> None:
         self.name = name
         self.description = description
-        self.elements: List[
+        self.elements: Dict[
+            Union[str, UUID],
             Union[
                 Element,
                 ExternalEntity,
@@ -36,9 +37,9 @@ class ThreatModel:
                 Boundary,
                 Dataflow,
                 BidirectionalDataflow,
-            ]
-        ] = []
-        self.threats: List[Threat] = []
+            ],
+        ] = {}
+        self.threats: Dict[Union[str, UUID], Threat] = {}
 
         self._generated_dot: str = ""
         self._boundaries: List[Boundary] = []
@@ -55,12 +56,10 @@ class ThreatModel:
         )
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
-        if other in [x.identifier for x in self.elements]:
+        threat = self.threats.get(other, None)
+        element = self.elements.get(other, None)
+        if threat or element:
             return True
-
-        if other in [x.identifier for x in self.threats]:
-            return True
-
         return False
 
     def __getitem__(
@@ -77,16 +76,13 @@ class ThreatModel:
     ]:
         """Allow []-based retrieval of elements and threats from this object
         based on their ID"""
-        for element in self.elements:
-            if element.identifier == item:
-                return element
+        element = self.elements.get(item, None)
+        if element:
+            return element
 
-        # concatenating elements and threats causes a mypy error:
-        # https://github.com/python/mypy/issues/5492
-        for threat in self.threats:
-            if threat.identifier == item:
-                return threat
-
+        threat = self.threats.get(item, None)
+        if threat:
+            return threat
         raise KeyError("Item {} not found".format(item))
 
     @classmethod
@@ -99,7 +95,38 @@ class ThreatModel:
         return threat_model
 
     def save(self, config: Optional[str] = None) -> None:
-        save(self.elements, self.name, self.description, config)
+        save(list(self.elements.values()), self.name, self.description, config)
+
+    def _check_for_duplicate_items(
+        self,
+        element: Union[
+            Element,
+            ExternalEntity,
+            Process,
+            Datastore,
+            Boundary,
+            Dataflow,
+            BidirectionalDataflow,
+            Threat,
+        ],
+    ) -> None:
+        try:
+            self.elements[element.identifier]
+        except KeyError:
+            pass
+        else:
+            raise DuplicateIdentifier(
+                "already have {} in this threat model".format(element.identifier)
+            )
+
+        try:
+            self.threats[element.identifier]
+        except KeyError:
+            pass
+        else:
+            raise DuplicateIdentifier(
+                "already have {} in this threat model".format(element.identifier)
+            )
 
     def add_element(
         self,
@@ -113,15 +140,7 @@ class ThreatModel:
             BidirectionalDataflow,
         ],
     ) -> None:
-        if element.identifier in [x.identifier for x in self.elements]:
-            raise DuplicateIdentifier(
-                "already have {} in this threat model".format(element.identifier)
-            )
-
-        if element.identifier in [x.identifier for x in self.threats]:
-            raise DuplicateIdentifier(
-                "already have {} in this threat model".format(element.identifier)
-            )
+        self._check_for_duplicate_items(element)
 
         if isinstance(element, (Dataflow, BidirectionalDataflow)):
             for item in [element.first_id, element.second_id]:
@@ -152,16 +171,11 @@ class ThreatModel:
                     #  ElementCollection type?
                     element.nodes.append(child)  # type: ignore
 
-        self.elements.append(element)
+        self.elements.update({element.identifier: element})
 
     def add_threat(self, threat: Threat) -> None:
-        if threat.identifier in [x.identifier for x in self.elements]:
-            raise DuplicateIdentifier
-
-        if threat.identifier in [x.identifier for x in self.threats]:
-            raise DuplicateIdentifier
-
-        self.threats.append(threat)
+        self._check_for_duplicate_items(threat)
+        self.threats.update({threat.identifier: threat})
 
     def add_elements(
         self,
@@ -183,7 +197,7 @@ class ThreatModel:
     def draw(self, output: str = "dfd.png") -> None:
         dfd = pygraphviz.AGraph(fontname=FONTFACE)
 
-        elements_to_draw = self.elements.copy()
+        elements_to_draw = list(self.elements.values()).copy()
 
         # Iterate through the boundaries. If there's a a boundary in the members,
         # set the parent attribute.
