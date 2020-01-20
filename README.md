@@ -79,4 +79,10 @@ This will generate the following Data Flow Diagram:
 
 ### Python-based system specification
 
-You can also use the Python API directly, though it's less concise. You can reproduce the above example with the Python API by running `examples/minesweeper.py`.
+You can also use the Python API directly, though it's less concise. You can reproduce the above example with the Python API by running `examples/minesweeper.py`:
+
+```
+$ python3 examples/minesweeper.py
+```
+
+The file will be saved by default in `dfd.png` in the current working directory.

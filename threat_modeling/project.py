@@ -156,20 +156,18 @@ class ThreatModel:
                 if isinstance(element.parent, str):
                     parent_element = self[element.parent]
                     element.parent = parent_element
+
             self._boundaries.append(element)
+
             # Members of an element will be Union[str, UUID]
             for child in element.members:
                 child_obj = self[child]
 
                 if isinstance(child_obj, Boundary):
-                    # Set Boundary.nodes to consist of the nodes
-                    # TODO: investigate this mypy error, could be legitimate TypeError
-                    element.nodes += child_obj.members  # type: ignore
+                    # Set Boundary.nodes to consist of the individual nodes
+                    element.nodes += child_obj.members
                 else:
-                    # child_element = self[child]
-                    # TODO: remove below type: ignore when we create an
-                    #  ElementCollection type?
-                    element.nodes.append(child)  # type: ignore
+                    element.nodes.append(child)
 
         self.elements.update({element.identifier: element})
 
