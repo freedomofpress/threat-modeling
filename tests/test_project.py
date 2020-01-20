@@ -61,7 +61,7 @@ def test_threat_model_saves_threats():
     """This is used by an enumeration method or if the user wants to
     manually define threats"""
 
-    tamper_traffic = Threat(description="Attacker tampers with user's network traffic")
+    tamper_traffic = Threat(name="Attacker tampers with user's network traffic")
 
     # Ensures that an identifying uuid has been generated if it wasn't provided
     assert tamper_traffic.identifier
@@ -74,7 +74,7 @@ def test_threat_model_saves_threats():
 
 
 def test_threat_model_contains_threat_not_in():
-    tamper_traffic = Threat(description="Attacker tampers with user's network traffic")
+    tamper_traffic = Threat(name="Attacker tampers with user's network traffic")
 
     my_threat_model = ThreatModel()
 
@@ -82,7 +82,7 @@ def test_threat_model_contains_threat_not_in():
 
 
 def test_threat_model_getitem_threat_not_in():
-    tamper_traffic = Threat(description="Attacker tampers with user's network traffic")
+    tamper_traffic = Threat(name="Attacker tampers with user's network traffic")
 
     my_threat_model = ThreatModel()
 
@@ -91,7 +91,7 @@ def test_threat_model_getitem_threat_not_in():
 
 
 def test_threat_model_get_threat_by_id():
-    tamper_traffic = Threat(description="Attacker tampers with user's network traffic")
+    tamper_traffic = Threat(name="Attacker tampers with user's network traffic")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_threat(tamper_traffic)
@@ -100,7 +100,7 @@ def test_threat_model_get_threat_by_id():
 
 
 def test_threat_model_disallows_adding_duplicate_threats():
-    tamper_traffic = Threat(identifier="a", description="foo")
+    tamper_traffic = Threat(identifier="a", name="foo")
     my_threat_model = ThreatModel()
 
     my_threat_model.add_threat(tamper_traffic)
@@ -110,7 +110,7 @@ def test_threat_model_disallows_adding_duplicate_threats():
 
 
 def test_threat_model_disallows_adding_threats_that_duplicate_an_element():
-    tamper_traffic = Threat(identifier="a", description="This doesn't really matter")
+    tamper_traffic = Threat(identifier="a", name="This doesn't really matter")
     server = Element(name="Primary server", identifier="a")
     my_threat_model = ThreatModel()
 
@@ -121,7 +121,7 @@ def test_threat_model_disallows_adding_threats_that_duplicate_an_element():
 
 
 def test_threat_model_disallows_adding_elements_that_duplicate_a_threat():
-    tamper_traffic = Threat(identifier="a", description="This doesn't really matter")
+    tamper_traffic = Threat(identifier="a", name="This doesn't really matter")
     server = Element(name="Primary server", identifier="a")
     my_threat_model = ThreatModel()
 

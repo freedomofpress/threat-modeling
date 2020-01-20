@@ -1,3 +1,4 @@
+from enum import Enum
 import pygraphviz
 import reprlib
 from uuid import uuid4, UUID
@@ -9,43 +10,74 @@ from threat_modeling.data_flow import FONTFACE, FONTSIZE, ELEMENT_COLOR
 TH = TypeVar("TH", bound="Threat")
 
 
+class ThreatStatus(Enum):
+    UNMANAGED = "Unmanaged"
+    MANAGED_INFORM = "Managed: Inform"
+    MANAGED_TRANSFERRED = "Managed: Transferred"
+    MANAGED_AVOIDED = "Managed: Avoided"
+    MANAGED_ACCEPTED = "Managed: Accepted"
+    MANAGED_MITIGATED = "Managed: Mitigated"
+    MANAGED_PARTIALLY_MITIGATED = "Managed: Partially Mitigated"
+    OUT_OF_SCOPE = "Out of scope"
+
+
 class Threat:
+    """
+    Each threat object represents a possible attack or "thing that can go
+    wrong". Multiple mitigations can map to a given threat. Each Threat object
+    applies to a single DFD element. If a given attack can be applied to
+    multiple DFD elements, one Threat must be generated for each DFD element.
+    """
+
     STYLE = "filled"
     COLOR = ELEMENT_COLOR
     SHAPE = "rectangle"
 
     def __init__(
         self,
+        name: str,
         identifier: Optional[Union[str, UUID]] = None,
-        description: Optional[str] = None,
+        description: Optional[str] = "",
         child_threats: Optional[List[Type[TH]]] = None,
     ):
+        """
+        Args:
+            identifier (str, UUID, optional): this is a short ID that is used
+                to map the threat to other objects (mitigations, DFD elements,
+                and other threats). If one is not provided it will be generated.
+            name (str): a short name that is used when drawing the threat in
+                diagrams.
+            description (str, optional): an optional description containing
+                more information about the given threat.
+            child_threats (list, optional): threats that become possible if this
+                threat is successfully exploited. This is used for the construction
+                and display of attack trees.
+        """
+
         if not identifier:
             identifier = uuid4()
 
+        self.name = name
         self.identifier = identifier
+        self.description = description
 
-        if description:
-            self.description = description
-
-        # Child threats are those that become exploitable if _this_
-        # threat is successfully exploited. This is used for the
-        # construction and display of AttackTrees.
         if child_threats:
             self.child_threats = child_threats.copy()
         else:
             self.child_threats = []
 
     def __str__(self) -> str:
-        return "<Threat {}: {}>".format(self.identifier, self.description)
+        return "<Threat {}: {}>".format(self.identifier, self.name)
 
     def __repr__(self) -> str:
-        return "Threat({}, {})".format(self.identifier, reprlib.repr(self.description))
+        return "Threat({}, {}, {})".format(
+            self.name, self.identifier, reprlib.repr(self.description)
+        )
 
     def draw(self, graph: pygraphviz.AGraph) -> None:
         graph.add_node(
             self.identifier,
-            label=self.description,
+            label=self.name,
             fontsize=FONTSIZE,
             fontname=FONTFACE,
             style=self.STYLE,
