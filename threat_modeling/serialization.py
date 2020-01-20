@@ -88,7 +88,7 @@ def save(
     name: Optional[str],
     description: Optional[str],
     config: Optional[str],
-) -> None:
+) -> str:
 
     if not config:
         config = "threat_model_{}.yaml".format(time.strftime("%Y%m%d-%H%M%S"))
@@ -127,3 +127,5 @@ def save(
         yaml.dump({"nodes": nodes}, f)
         yaml.dump({"dataflows": dataflows}, f)
         yaml.dump({"boundaries": boundaries}, f)
+
+    return config

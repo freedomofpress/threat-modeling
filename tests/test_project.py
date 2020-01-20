@@ -423,4 +423,4 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary_sa
     boundary = Boundary("trust", [boundary_2.identifier, test_id_2], identifier="trust")
     my_threat_model.add_element(boundary)
 
-    my_threat_model.save()
+    my_threat_model.save("{}/test.yaml".format(str(tmpdir)))
