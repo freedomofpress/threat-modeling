@@ -222,7 +222,7 @@ class Boundary(Element):
             members  # Contains identifiers for boundaries, nodes in this boundary
         )
         self.parent = parent
-        self.nodes: List[Element] = []
+        self.nodes: List[Union[str, UUID]] = []
 
     def __str__(self) -> str:
         return "<Boundary {}: {}>".format(self.name, reprlib.repr(self.members))
