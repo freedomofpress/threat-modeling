@@ -87,15 +87,22 @@ class ThreatModel:
 
     @classmethod
     def load(cls: Type[TM], config: str) -> TM:
-        (name, description, nodes, boundaries, dataflows) = load(config)
+        (name, description, nodes, boundaries, dataflows, threats) = load(config)
         threat_model = cls(name, description)
         threat_model.add_elements(nodes)
         threat_model.add_elements(boundaries)
         threat_model.add_elements(dataflows)
+        threat_model.add_threats(threats)
         return threat_model
 
     def save(self, config: Optional[str] = None) -> str:
-        config = save(list(self.elements.values()), self.name, self.description, config)
+        config = save(
+            list(self.elements.values()),
+            list(self.threats.values()),
+            self.name,
+            self.description,
+            config,
+        )
         return config
 
     def _check_for_duplicate_items(
@@ -174,7 +181,17 @@ class ThreatModel:
 
     def add_threat(self, threat: Threat) -> None:
         self._check_for_duplicate_items(threat)
+        if not threat.child_threats:
+            for child_threat_id in threat.child_threat_ids:
+                threat_obj = self[child_threat_id]
+                # TODO: Figure out expected "Type[<nothing>]" mypy
+                # reports below.
+                threat.add_child_threat(threat_obj)  # type: ignore
         self.threats.update({threat.identifier: threat})
+
+    def add_threats(self, threats: List[Threat]) -> None:
+        for threat in threats:
+            self.add_threat(threat)
 
     def add_elements(
         self,

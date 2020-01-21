@@ -1,0 +1,37 @@
+---
+name: Example
+description: Web application
+
+nodes:
+  - name: Backend database
+    type: Datastore
+    id: DFD1
+
+  - name: Game Application
+    type: Process
+    id: DFD5
+
+boundaries:
+  - name: System
+    members: 
+      - DFD1
+
+dataflows:
+  - name: Settings
+    first_node: DFD1
+    second_node: DFD5
+
+threats:
+  - name: Weak password hashing used
+    id: THREAT2
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+
+  - name: SQLi in web application
+    id: THREAT1
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+    child_threats:
+      - THREAT2

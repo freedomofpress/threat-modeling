@@ -13,3 +13,7 @@ make check
 ```
 
 You can run separately with `make test` and `make lint`.
+
+# docstrings
+
+We use Google style docstrings.

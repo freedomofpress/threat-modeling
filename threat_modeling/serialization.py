@@ -12,6 +12,7 @@ from threat_modeling.data_flow import (
     Datastore,
     Boundary,
 )
+from threat_modeling.threats import Threat
 
 
 node_dispatch = {
@@ -30,6 +31,7 @@ def load(
     List[Union[Element, ExternalEntity, Process, Datastore]],
     List[Boundary],
     List[Union[Dataflow, BidirectionalDataflow]],
+    List[Threat],
 ]:
     with open(config) as f:
         config_data = yaml.load(f, Loader=yaml.SafeLoader)
@@ -77,14 +79,35 @@ def load(
             )
             dataflows.append(dataflow_obj)
 
+    threats = []
+    for threat in config_data.get("threats", []):
+        identifier = threat.get("id", None)
+        description = threat.get("description", None)
+        name = threat.get("name", None)
+        child_threat_ids = threat.get("child_threats", None)
+        status = threat.get("status", None)
+        base_impact = threat.get("base_impact", None)
+        base_exploitability = threat.get("base_exploitability", None)
+        threat_obj = Threat(
+            name=name,
+            identifier=identifier,
+            description=description,
+            status=status,
+            base_impact=base_impact,
+            base_exploitability=base_exploitability,
+            child_threat_ids=child_threat_ids,
+        )
+        threats.append(threat_obj)
+
     name = config_data.get("name", None)
     description = config_data.get("description", None)
 
-    return (name, description, nodes, boundaries, dataflows)
+    return (name, description, nodes, boundaries, dataflows, threats)
 
 
 def save(
     elements: List[Element],
+    threats: List[Threat],
     name: Optional[str],
     description: Optional[str],
     config: Optional[str],
@@ -121,11 +144,35 @@ def save(
             element_dict.update({"type": type(element).__name__})
             nodes.append(element_dict)
 
+    threats_to_save = []
+    for threat in threats:
+        threat_dict = {"id": str(threat.identifier)}
+        if threat.name:
+            threat_dict.update({"name": threat.name})
+        if threat.description:
+            threat_dict.update({"description": threat.description})
+        if threat.status:
+            threat_dict.update({"status": threat.status.name})
+        if threat.base_impact:
+            threat_dict.update({"base_impact": threat.base_impact.name})
+        if threat.base_exploitability:
+            threat_dict.update({"base_exploitability": threat.base_exploitability.name})
+        if threat.child_threats:
+            threat_dict.update(
+                {
+                    "child_threats": str(
+                        [str(x.identifier) for x in threat.child_threats]
+                    )
+                }
+            )
+        threats_to_save.append(threat_dict)
+
     with open(config, "w") as f:
         yaml.dump({"name": name}, f)
         yaml.dump({"description": description}, f)
         yaml.dump({"nodes": nodes}, f)
         yaml.dump({"dataflows": dataflows}, f)
         yaml.dump({"boundaries": boundaries}, f)
+        yaml.dump({"threats": threats_to_save}, f)
 
     return config
