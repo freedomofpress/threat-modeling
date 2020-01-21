@@ -453,6 +453,13 @@ def test_threat_model_save_threats(tmpdir,):
     my_threat_model.add_element(db)
     my_threat_model.add_element(webapp_2)
 
+    threat_2 = Threat(
+        name="Weak password hashing used",
+        identifier="THREAT2",
+        status="unmanaged",
+        base_exploitability="medium",
+        base_impact="medium",
+    )
     threat = Threat(
         name="SQLi in web application",
         identifier="THREAT1",
@@ -460,14 +467,7 @@ def test_threat_model_save_threats(tmpdir,):
         status="unmanaged",
         base_impact="medium",
         base_exploitability="medium",
-        child_threats=["THREAT1"],
-    )
-    threat_2 = Threat(
-        name="Weak password hashing used",
-        identifier="THREAT2",
-        status="unmanaged",
-        base_exploitability="medium",
-        base_impact="medium",
+        child_threats=[threat_2],
     )
     my_threat_model.add_threat(threat)
     my_threat_model.add_threat(threat_2)

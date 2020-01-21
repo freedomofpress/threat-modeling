@@ -22,16 +22,16 @@ dataflows:
     second_node: DFD5
 
 threats:
+  - name: Weak password hashing used
+    id: THREAT2
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+
   - name: SQLi in web application
     id: THREAT1
     status: unmanaged
     base_impact: medium
     base_exploitability: medium
     child_threats:
-      - THREAT1
-
-  - name: Weak password hashing used
-    id: THREAT2
-    status: unmanaged
-    base_impact: medium
-    base_exploitability: medium
+      - THREAT2

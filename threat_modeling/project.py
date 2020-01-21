@@ -181,6 +181,12 @@ class ThreatModel:
 
     def add_threat(self, threat: Threat) -> None:
         self._check_for_duplicate_items(threat)
+        if not threat.child_threats:
+            for child_threat_id in threat.child_threat_ids:
+                threat_obj = self[child_threat_id]
+                # TODO: Figure out expected "Type[<nothing>]" mypy
+                # reports below.
+                threat.add_child_threat(threat_obj)  # type: ignore
         self.threats.update({threat.identifier: threat})
 
     def add_threats(self, threats: List[Threat]) -> None:

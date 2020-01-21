@@ -84,18 +84,18 @@ def load(
         identifier = threat.get("id", None)
         description = threat.get("description", None)
         name = threat.get("name", None)
-        child_threats = threat.get("child_threats", None)
+        child_threat_ids = threat.get("child_threats", None)
         status = threat.get("status", None)
         base_impact = threat.get("base_impact", None)
         base_exploitability = threat.get("base_exploitability", None)
         threat_obj = Threat(
-            name,
-            identifier,
-            description,
-            child_threats,
-            status,
-            base_impact,
-            base_exploitability,
+            name=name,
+            identifier=identifier,
+            description=description,
+            status=status,
+            base_impact=base_impact,
+            base_exploitability=base_exploitability,
+            child_threat_ids=child_threat_ids,
         )
         threats.append(threat_obj)
 
@@ -159,7 +159,11 @@ def save(
             threat_dict.update({"base_exploitability": threat.base_exploitability.name})
         if threat.child_threats:
             threat_dict.update(
-                {"child_threats": str([str(x) for x in threat.child_threats])}
+                {
+                    "child_threats": str(
+                        [str(x.identifier) for x in threat.child_threats]
+                    )
+                }
             )
         threats_to_save.append(threat_dict)
 

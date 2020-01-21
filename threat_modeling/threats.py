@@ -7,7 +7,7 @@ from typing import List, Optional, Union, Type, TypeVar
 
 from threat_modeling.data_flow import FONTFACE, FONTSIZE, ELEMENT_COLOR
 
-TH = TypeVar("TH", bound="Threat")
+ThreatType = TypeVar("ThreatType", bound="Threat")
 
 
 class ThreatStatus(Enum):
@@ -47,10 +47,11 @@ class Threat:
         name: str,
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = "",
-        child_threats: Optional[List[Type[TH]]] = None,
+        child_threats: Optional[List[Type[ThreatType]]] = None,
         status: Optional[str] = None,
         base_impact: Optional[str] = None,
         base_exploitability: Optional[str] = None,
+        child_threat_ids: Optional[List[Union[str, UUID]]] = None,
     ):
         """
         Args:
@@ -61,7 +62,7 @@ class Threat:
                 diagrams.
             description (str, optional): an optional description containing
                 more information about the given threat.
-            child_threats (list, optional): threats that become possible if this
+            child_threats (list[Threat], optional): threats that become possible if this
                 threat is successfully exploited. This is used for the construction
                 and display of attack trees.
             status (str, optional): the mitigation status of this threat.
@@ -70,6 +71,9 @@ class Threat:
                 before any mitigations have been applied.
             base_exploitability (str, optional): the ease of exploiting
                 this threat.
+            child_threat_ids (list[str, UUID], optional): used for specifying child
+                threats by ID. This is used when adding a threat to the threat model,
+                to populate child_threats.
         """
 
         if not identifier:
@@ -88,6 +92,11 @@ class Threat:
             self.child_threats = child_threats.copy()
         else:
             self.child_threats = []
+
+        if child_threat_ids:
+            self.child_threat_ids = child_threat_ids.copy()
+        else:
+            self.child_threat_ids = []
 
         # Metrics
         if base_impact:
@@ -116,6 +125,9 @@ class Threat:
         return "Threat({}, {}, {})".format(
             self.name, self.identifier, reprlib.repr(self.description)
         )
+
+    def add_child_threat(self, child_threat: Type[ThreatType]) -> None:
+        self.child_threats.append(child_threat)
 
     def draw(self, graph: pygraphviz.AGraph) -> None:
         graph.add_node(
