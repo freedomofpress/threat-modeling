@@ -1,0 +1,36 @@
+---
+threats:
+  - name: Weak password hashing used
+    id: THREAT2
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+
+  - name: Credit card data stored plaintext
+    id: THREAT5
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+
+  - name: SQLi in web application
+    id: THREAT1
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+    child_threats:
+      - THREAT2
+      - THREAT5
+
+  - name: Attacker logs in using sniffed password
+    id: THREAT3
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+
+  - name: Attacker sniffs HTTP traffic between client and server
+    id: THREAT4
+    status: unmanaged
+    base_impact: medium
+    base_exploitability: medium
+    child_threats:
+      - THREAT3

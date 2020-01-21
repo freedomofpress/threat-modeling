@@ -16,7 +16,7 @@ from threat_modeling.data_flow import (
 )
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.serialization import load, save
-from threat_modeling.threats import Threat
+from threat_modeling.threats import AttackTree, Threat
 
 TM = TypeVar("TM", bound="ThreatModel")
 
@@ -253,3 +253,13 @@ class ThreatModel:
 
         dfd.draw(output, prog="dot", args="-Gdpi=300")
         self._generated_dot = str(dfd)
+
+    def draw_attack_trees(self) -> None:
+        """
+        Draw all attack trees and all subtrees, provided there
+        is at least one node in the tree.
+        """
+        for threat in list(self.threats.values()):
+            if threat.child_threats:
+                attack_tree = AttackTree(threat)
+                attack_tree.draw()
