@@ -482,3 +482,11 @@ def test_threat_model_save_threats(tmpdir,):
         assert item["status"].lower() == "unmanaged"
         assert item["base_exploitability"].lower() == "medium"
         assert item["base_impact"].lower() == "medium"
+
+
+def test_threat_model_generates_attack_trees():
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "files/threat_tree.yaml"
+    )
+    threat_model = ThreatModel.load(test_file)
+    threat_model.draw_attack_trees()
