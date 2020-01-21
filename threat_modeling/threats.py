@@ -48,7 +48,7 @@ class Threat:
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = "",
         child_threats: Optional[List[Type[TH]]] = None,
-        status: Optional[ThreatStatus] = ThreatStatus.UNMANAGED,
+        status: Optional[str] = None,
         base_impact: Optional[str] = None,
         base_exploitability: Optional[str] = None,
     ):
@@ -78,7 +78,11 @@ class Threat:
         self.name = name
         self.identifier = identifier
         self.description = description
-        self.status = status
+        if status:
+            status_lookup = ThreatStatus[status.upper()]
+            self.status: Optional[ThreatStatus] = status_lookup
+        else:  # No status provided
+            self.status = ThreatStatus.UNMANAGED
 
         if child_threats:
             self.child_threats = child_threats.copy()

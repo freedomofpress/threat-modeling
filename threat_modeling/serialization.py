@@ -12,6 +12,7 @@ from threat_modeling.data_flow import (
     Datastore,
     Boundary,
 )
+from threat_modeling.threats import Threat
 
 
 node_dispatch = {
@@ -30,6 +31,7 @@ def load(
     List[Union[Element, ExternalEntity, Process, Datastore]],
     List[Boundary],
     List[Union[Dataflow, BidirectionalDataflow]],
+    List[Threat],
 ]:
     with open(config) as f:
         config_data = yaml.load(f, Loader=yaml.SafeLoader)
@@ -77,10 +79,30 @@ def load(
             )
             dataflows.append(dataflow_obj)
 
+    threats = []
+    for threat in config_data.get("threats", []):
+        identifier = threat.get("id", None)
+        description = threat.get("description", None)
+        name = threat.get("name", None)
+        child_threats = threat.get("child_threats", None)
+        status = threat.get("status", None)
+        base_impact = threat.get("base_impact", None)
+        base_exploitability = threat.get("base_exploitability", None)
+        threat_obj = Threat(
+            name,
+            identifier,
+            description,
+            child_threats,
+            status,
+            base_impact,
+            base_exploitability,
+        )
+        threats.append(threat_obj)
+
     name = config_data.get("name", None)
     description = config_data.get("description", None)
 
-    return (name, description, nodes, boundaries, dataflows)
+    return (name, description, nodes, boundaries, dataflows, threats)
 
 
 def save(
