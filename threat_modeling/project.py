@@ -96,7 +96,13 @@ class ThreatModel:
         return threat_model
 
     def save(self, config: Optional[str] = None) -> str:
-        config = save(list(self.elements.values()), self.name, self.description, config)
+        config = save(
+            list(self.elements.values()),
+            list(self.threats.values()),
+            self.name,
+            self.description,
+            config,
+        )
         return config
 
     def _check_for_duplicate_items(

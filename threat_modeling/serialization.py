@@ -107,6 +107,7 @@ def load(
 
 def save(
     elements: List[Element],
+    threats: List[Threat],
     name: Optional[str],
     description: Optional[str],
     config: Optional[str],
@@ -143,11 +144,31 @@ def save(
             element_dict.update({"type": type(element).__name__})
             nodes.append(element_dict)
 
+    threats_to_save = []
+    for threat in threats:
+        threat_dict = {"id": str(threat.identifier)}
+        if threat.name:
+            threat_dict.update({"name": threat.name})
+        if threat.description:
+            threat_dict.update({"description": threat.description})
+        if threat.status:
+            threat_dict.update({"status": threat.status.name})
+        if threat.base_impact:
+            threat_dict.update({"base_impact": threat.base_impact.name})
+        if threat.base_exploitability:
+            threat_dict.update({"base_exploitability": threat.base_exploitability.name})
+        if threat.child_threats:
+            threat_dict.update(
+                {"child_threats": str([str(x) for x in threat.child_threats])}
+            )
+        threats_to_save.append(threat_dict)
+
     with open(config, "w") as f:
         yaml.dump({"name": name}, f)
         yaml.dump({"description": description}, f)
         yaml.dump({"nodes": nodes}, f)
         yaml.dump({"dataflows": dataflows}, f)
         yaml.dump({"boundaries": boundaries}, f)
+        yaml.dump({"threats": threats_to_save}, f)
 
     return config

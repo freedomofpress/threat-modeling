@@ -1,5 +1,6 @@
 import os
 import pytest
+import yaml
 
 from threat_modeling.data_flow import (
     Element,
@@ -436,3 +437,48 @@ def test_threat_model_load_threats_from_yaml():
     assert len(model.elements) == 4
     assert len(model._boundaries) == 1
     assert len(model.threats) == 2
+
+
+def test_threat_model_save_threats(tmpdir,):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    threat = Threat(
+        name="SQLi in web application",
+        identifier="THREAT1",
+        description="Attacker can dump the user table",
+        status="unmanaged",
+        base_impact="medium",
+        base_exploitability="medium",
+        child_threats=["THREAT1"],
+    )
+    threat_2 = Threat(
+        name="Weak password hashing used",
+        identifier="THREAT2",
+        status="unmanaged",
+        base_exploitability="medium",
+        base_impact="medium",
+    )
+    my_threat_model.add_threat(threat)
+    my_threat_model.add_threat(threat_2)
+
+    output_file = "{}/test.yaml".format(str(tmpdir))
+    my_threat_model.save("{}/test.yaml".format(str(tmpdir)))
+
+    with open(output_file) as f:
+        result = yaml.load(f, Loader=yaml.SafeLoader)
+
+    for item in result["threats"]:
+        assert item["status"].lower() == "unmanaged"
+        assert item["base_exploitability"].lower() == "medium"
+        assert item["base_impact"].lower() == "medium"

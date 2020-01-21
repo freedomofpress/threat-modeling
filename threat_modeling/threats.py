@@ -64,7 +64,7 @@ class Threat:
             child_threats (list, optional): threats that become possible if this
                 threat is successfully exploited. This is used for the construction
                 and display of attack trees.
-            status (ThreatStatus, optional): the mitigation status of this threat.
+            status (str, optional): the mitigation status of this threat.
                 Defaults to unmanaged if no status is provided.
             base_impact (str, optional): the impact of this vulnerability
                 before any mitigations have been applied.
