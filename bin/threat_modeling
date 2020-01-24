@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+import argparse
+import os
+
+from threat_modeling.project import ThreatModel
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--attack-trees", help="generate attack trees", action="store_true")
+parser.add_argument("--dfd", help="generate data flow diagram", action="store_true")
+parser.add_argument("input", help="system specification (yaml)")
+args = parser.parse_args()
+
+tm = ThreatModel.load(args.input)
+if args.attack_trees:
+    tm.draw_attack_trees()
+    print('[*] Attack trees saved in cwd')
+if args.dfd:
+    tm.draw()
+    print('[*] DFD saved in dfd.png')
