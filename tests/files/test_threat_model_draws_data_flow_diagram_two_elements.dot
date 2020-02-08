@@ -1,14 +1,16 @@
 strict graph "" {
-	graph [fontname="Times-Roman"];
+	graph [fontname="Times-Roman",
+		rankdir=LR
+	];
 	node [label="\N"];
 	Server	 [fillcolor="#DF9AA4",
 		fontname="Times-Roman",
-		fontsize=10.0,
+		fontsize=20.0,
 		label=Server,
 		style=filled];
 	Client	 [fillcolor="#DF9AA4",
 		fontname="Times-Roman",
-		fontsize=10.0,
+		fontsize=20.0,
 		label=Client,
 		style=filled];
 }

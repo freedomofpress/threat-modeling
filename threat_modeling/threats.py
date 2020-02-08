@@ -21,7 +21,7 @@ class ThreatStatus(Enum):
     OUT_OF_SCOPE = "Out of scope"
 
 
-class CategoricalScore(Enum):
+class OrdinalScore(Enum):
     NONE = 0
     VERY_LOW = 1
     LOW = 2
@@ -83,7 +83,7 @@ class Threat:
         self.identifier = identifier
         self.description = description
         if status:
-            status_lookup = ThreatStatus[status.upper()]
+            status_lookup = ThreatStatus[status.replace(" ", "_").upper()]
             self.status: Optional[ThreatStatus] = status_lookup
         else:  # No status provided
             self.status = ThreatStatus.UNMANAGED
@@ -100,15 +100,17 @@ class Threat:
 
         # Metrics
         if base_impact:
-            base_impact_lookup = CategoricalScore[base_impact.upper()]
-            self.base_impact: Optional[CategoricalScore] = base_impact_lookup
+            base_impact_lookup = OrdinalScore[base_impact.replace(" ", "_").upper()]
+            self.base_impact: Optional[OrdinalScore] = base_impact_lookup
         else:
             self.base_impact = None
 
         if base_exploitability:
-            base_exploitability_lookup = CategoricalScore[base_exploitability.upper()]
+            base_exploitability_lookup = OrdinalScore[
+                base_exploitability.replace(" ", "_").upper()
+            ]
             self.base_exploitability: Optional[
-                CategoricalScore
+                OrdinalScore
             ] = base_exploitability_lookup
         else:
             self.base_exploitability = None

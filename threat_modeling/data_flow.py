@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from typing import List, Optional, Type, TypeVar, Union
 
 
-FONTSIZE = 10.0
+FONTSIZE = 20.0
 FONTFACE = "Times-Roman"
 
 # Colors here loosely based on seaborn
@@ -140,7 +140,7 @@ class Dataflow(Element):
             dest_node,
             dir=self.DIRECTION,
             arrowhead="normal",
-            label=" " + self.name + " ",
+            label=self.name,
             fontsize=FONTSIZE - 2,
             fontname=FONTFACE,
         )

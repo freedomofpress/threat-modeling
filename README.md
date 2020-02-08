@@ -1,11 +1,32 @@
 # threat-modeling
 [![CircleCI](https://circleci.com/gh/redshiftzero/threat-modeling.svg?style=svg)](https://circleci.com/gh/redshiftzero/threat-modeling)
 
-This is a library of threat modeling tools in Python inspired by related projects like [pytm](https://github.com/izar/pytm).
+**Note:** this is an experimental tool in the alpha stage, the API and YAML spec format may change.
 
-Data Flow Diagrams (DFDs) can be generated using a specification of the system architecture either in Python (using the various objects from `data_flow.py`) or using YAML and the `ThreatModel.load` class method.
+This is a library of threat modeling tools in Python inspired by related projects like [pytm](https://github.com/izar/pytm). Data Flow Diagrams (DFDs) can be generated using a YAML specification of the system architecture. If you include the threats and their child-parent relationships in the YAML specification, you can also generate attack trees.
 
-## Examples
+## Installation
+
+```
+pip install --editable .
+```
+
+## CLI usage
+
+```
+$ threatmodel --help
+usage: threatmodel [-h] [--attack-trees] [--dfd] input
+
+positional arguments:
+  input           system specification (yaml)
+
+optional arguments:
+  -h, --help      show this help message and exit
+  --attack-trees  generate attack trees
+  --dfd           generate data flow diagram
+```
+
+## Data Flow Diagram Examples
 
 ### YAML-based system specification
 
@@ -68,9 +89,8 @@ dataflows:
 You can use this as follows:
 
 ```
->>> from threat_modeling.project import ThreatModel
->>> tm = ThreatModel.load('examples/minesweeper.yaml')
->>> tm.draw('minesweeper.png')
+$ threatmodel --dfd minesweeper.yaml
+[*] DFD saved in dfd.png
 ```
 
 This will generate the following Data Flow Diagram:
@@ -79,10 +99,15 @@ This will generate the following Data Flow Diagram:
 
 ### Python-based system specification
 
-You can also use the Python API directly, though it's less concise. You can reproduce the above example with the Python API by running `examples/minesweeper.py`:
+The system can be specified either in Python (using the various objects in `threat_modeling.data_flow`) or using YAML and the `ThreatModel.load` class method.
+You _can_ use the Python API directly, though it's far less concise. You can reproduce the above example with the Python API by running `examples/minesweeper.py`:
 
 ```
 $ python3 examples/minesweeper.py
 ```
 
 The file will be saved by default in `dfd.png` in the current working directory.
+
+## Threat Examples
+
+You can add the threats key.

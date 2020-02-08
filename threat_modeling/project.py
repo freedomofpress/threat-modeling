@@ -211,7 +211,7 @@ class ThreatModel:
             self.add_element(element)
 
     def draw(self, output: str = "dfd.png") -> None:
-        dfd = pygraphviz.AGraph(fontname=FONTFACE)
+        dfd = pygraphviz.AGraph(fontname=FONTFACE, rankdir="LR")
 
         elements_to_draw = list(self.elements.values()).copy()
 
