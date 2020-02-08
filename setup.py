@@ -11,7 +11,7 @@ setuptools.setup(
     description="Threat modeling tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/redshiftzero/threat_modeling",
+    url="https://github.com/redshiftzero/threat-modeling",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -23,4 +23,5 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     scripts=['bin/threatmodel'],
+    install_requires=["pygraphviz>=1.5", "PyYAML>=5.3"],
 )

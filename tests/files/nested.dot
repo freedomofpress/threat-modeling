@@ -1,10 +1,12 @@
 strict graph "" {
-	graph [fontname="Times-Roman"];
+	graph [fontname="Times-Roman",
+		rankdir=LR
+	];
 	node [label="\N"];
 	subgraph cluster_trust {
 		graph [fillcolor="#55555522",
 			fontname="Times-Roman",
-			fontsize=12.0,
+			fontsize=22.0,
 			label=trust,
 			labeljust=l,
 			style="rounded, filled"
@@ -12,27 +14,27 @@ strict graph "" {
 		subgraph cluster_webapp {
 			graph [fillcolor="#55555522",
 				fontname="Times-Roman",
-				fontsize=12.0,
+				fontsize=22.0,
 				label=webapp,
 				labeljust=l,
 				style="rounded, filled"
 			];
 			"Web application frontend"			 [fillcolor="#C1DECA",
 				fontname="Times-Roman",
-				fontsize=10.0,
+				fontsize=20.0,
 				label="Web application frontend",
 				shape=circle,
 				style=filled];
 			"Web application backend"			 [fillcolor="#C1DECA",
 				fontname="Times-Roman",
-				fontsize=10.0,
+				fontsize=20.0,
 				label="Web application backend",
 				shape=circle,
 				style=filled];
 		}
 		db		 [fillcolor="#B3AAE6",
 			fontname="Times-Roman",
-			fontsize=10.0,
+			fontsize=20.0,
 			label=db,
 			shape=cylinder,
 			style=filled];
