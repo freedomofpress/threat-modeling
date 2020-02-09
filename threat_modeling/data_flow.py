@@ -19,6 +19,25 @@ T = TypeVar("T", bound="Dataflow")
 
 
 class Element:
+    """
+    Element is the base class for all objects in the data flow diagram.
+    It is a concrete implementation you can use directly (for example if no
+    other Data flow diagram element fits your situation), or you can subclass
+    and reimplement the `draw()` method to modify how the item will appear in
+    the generated DFD.
+
+    Args:
+      name (str): a short name for the object. It does not need to be unique.
+      identifier (str, UUID, optional): a unique ID for the object. If one is
+         not provided it will be generated.
+      description (str, optional): a longer description of the element.
+
+    Examples:
+      >>> elem = Element("Primary server")
+      >>> str(elem)
+      '<Element: Primary server>'
+    """
+
     SHAPE: Optional[str] = None  # Default
     STYLE = "filled"
     COLOR = ELEMENT_COLOR
@@ -64,6 +83,12 @@ class Element:
         return hash(self.name) ^ hash(self.identifier) ^ hash(self.description)
 
     def draw(self, graph: AGraph) -> None:
+        """
+        This method is called when we try to draw a ThreatModel object.
+
+        Args:
+          graph (AGraph): the graphviz object that we will add a node to.
+        """
         kwargs = {
             "label": self.name,
             "fontsize": FONTSIZE,
@@ -82,6 +107,25 @@ class Element:
 
 
 class Dataflow(Element):
+    """
+    Dataflow represents a flow of information from one element to another.
+    The first node is the source and the second node is the sink.
+    Bidirectional flows should use the BidirectionalDataflow object.
+
+    Args:
+      first_id (str, UUID): identifier for the first node (source)
+      second_id (str, UUID): identifier for the second node (sink)
+      name (str): a short name for the object. It does not need to be unique.
+      identifier (str, UUID, optional): a unique ID for the object. If one is
+         not provided it will be generated.
+      description (str, optional): a longer description of the element.
+
+    Examples:
+      >>> source = Element("Client", "SOURCE1")
+      >>> sink = Element("Server", "SOURCE2")
+      >>> df = Dataflow("SOURCE1", "SOURCE2", "Client sends data to client")
+    """
+
     DIRECTION = "forward"
 
     def __init__(
@@ -108,6 +152,27 @@ class Dataflow(Element):
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = None,
     ) -> T:
+        """
+        Alternative constructor for the Dataflow, where the source / first node
+        and sink / second node are passed to the dataflow as an object instead of an
+        ID.
+
+        Args:
+          first_element (Element): identifier for the first node (source)
+          second_element (Element): identifier for the second node (sink)
+          name (str): a short name for the object. It does not need to be unique.
+          identifier (str, UUID, optional): a unique ID for the object. If one is
+            not provided it will be generated.
+          description (str, optional): a longer description of the element.
+
+        Returns:
+          dataflow instance
+
+        Examples:
+          >>> source = Element("Client", "SOURCE1")
+          >>> sink = Element("Server", "SOURCE2")
+          >>> df = Dataflow.from_elements(source, sink, "Client sends data to client")
+        """
         return cls(
             first_element.identifier,
             second_element.identifier,
@@ -132,9 +197,14 @@ class Dataflow(Element):
         )
 
     def draw(self, graph: AGraph) -> None:
+        """
+        This method is called when we try to draw a ThreatModel object.
+
+        Args:
+          graph (AGraph): the graphviz object that we will add an edge to.
+        """
         source_node = graph.get_node(self.first_id)
         dest_node = graph.get_node(self.second_id)
-        # We draw edges with a bit of padding around the label to prevent overlapping.
         graph.add_edge(
             source_node,
             dest_node,
@@ -147,6 +217,13 @@ class Dataflow(Element):
 
 
 class BidirectionalDataflow(Dataflow):
+    """
+    BidirectionalDataflow is just like Dataflow except is treated where each
+    connected node is both a source and a sink.
+
+    It provides the same API as Dataflow.
+    """
+
     DIRECTION = "both"
 
     def __init__(
@@ -166,6 +243,13 @@ class BidirectionalDataflow(Dataflow):
 
 
 class Process(Element):
+    """
+    Process represents a component of the system that transforms data in
+    some way.
+
+    It provides the same API as Element.
+    """
+
     SHAPE = "circle"
     STYLE = "filled"
     COLOR = PROCESS_COLOR
@@ -180,6 +264,14 @@ class Process(Element):
 
 
 class ExternalEntity(Element):
+    """
+    ExternalEntity represents an object that is outside of the system but otherwise
+    interacts with it in some way. It could be a user, an external server or
+    organization.
+
+    It provides the same API as Element.
+    """
+
     SHAPE = "rectangle"
     STYLE = "filled"
     COLOR = EXTERNAL_COLOR
@@ -194,6 +286,14 @@ class ExternalEntity(Element):
 
 
 class Datastore(Element):
+    """
+    Datastore represents a store of data for later use. It could be a configuration
+    file, a database, a physical store of data like a magnetic tape, or some other
+    format used to store data.
+
+    It provides the same API as Element.
+    """
+
     SHAPE = "cylinder"
     STYLE = "filled"
     COLOR = DATASTORE_COLOR
@@ -208,6 +308,25 @@ class Datastore(Element):
 
 
 class Boundary(Element):
+    """
+    Boundary represents a trust boundary in a system. For example, a boundary could
+    exist around all elements inside the datacenter, or all elements on a given physical
+    machine.
+
+    Args:
+      name (str): a short name for the object. It does not need to be unique.
+      members (list[str, UUID]): a list of identifiers that correspond to nodes that
+        are inside this boundary. The identifiers can include another boundary.
+      identifier (str, UUID, optional): a unique ID for the object. If one is
+         not provided it will be generated.
+      description (str, optional): a longer description of the element.
+
+    Examples:
+      >>> source = Element("Client", "SOURCE1")
+      >>> sink = Element("Server", "SOURCE2")
+      >>> df = Dataflow("SOURCE1", "SOURCE2", "Client sends data to client")
+    """
+
     def __init__(
         self,
         name: str,
@@ -238,6 +357,12 @@ class Boundary(Element):
         )
 
     def draw(self, graph: AGraph) -> None:
+        """
+        This method is called when we try to draw a ThreatModel object.
+
+        Args:
+          graph (AGraph): the graphviz object that we will add a subgraph to.
+        """
         # This will raise KeyError if a node is not present in the graph
         graphviz_nodes = [graph.get_node(x) for x in self.nodes]
 

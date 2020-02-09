@@ -33,6 +33,15 @@ def load(
     List[Union[Dataflow, BidirectionalDataflow]],
     List[Threat],
 ]:
+    """
+    Function for loading threat models from YAML.
+
+    Args:
+      config (str): Location to load from disk.
+
+    Returns:
+      A tuple of (name, description, nodes, boundaries, dataflows, threats)
+    """
     with open(config) as f:
         config_data = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -112,6 +121,20 @@ def save(
     description: Optional[str],
     config: Optional[str],
 ) -> str:
+    """
+    Function for saving threat models to YAML format.
+
+    Args:
+      elements (list[Element]): list of elements from the threat model
+      threats (list[Threat]: list of threats from the threat model
+      name (str, optional): threat model's name
+      description (str, optional): threat model's description
+      config (str, optional): Location on disk to save the YAML.
+
+    Returns:
+      config (str): Location on disk where the YAML was saved (in case the user did not
+        provide one).
+    """
 
     if not config:
         config = "threat_model_{}.yaml".format(time.strftime("%Y%m%d-%H%M%S"))
