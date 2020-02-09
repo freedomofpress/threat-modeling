@@ -22,6 +22,34 @@ TM = TypeVar("TM", bound="ThreatModel")
 
 
 class ThreatModel:
+    """
+    Primary threat model object. Users add elements and threats to this model
+    and can call its utility methods to draw useful diagrams or perform analysis
+    on the threat model as a whole.
+
+    One should use the add_element and add_threat methods to add elements
+    or threats:
+
+    >>> threat_model = ThreatModel("example")
+    >>> element = Element("Server", "1")
+    >>> threat_model.add_element(element)
+
+    Adding the same threat or element will raise an exception:
+
+    >>> threat_model.add_element(element)
+    Traceback (most recent call last):
+        ...
+    threat_modeling.exceptions.DuplicateIdentifier: already have 1 in this threat model
+
+    Args:
+      name (str, optional): threat model's name
+      description (str, optional): threat model's description
+      elements (dict[str, uuid: Element]): dictionary containing a mapping of
+        identifiers (str or UUID) to Element objects.
+      threats (dict[str, uuid: Threat]): dictionary containing a mapping of identifiers
+        (str or UUID) to Threat objects.
+    """
+
     def __init__(
         self, name: Optional[str] = None, description: Optional[str] = None
     ) -> None:
@@ -87,6 +115,16 @@ class ThreatModel:
 
     @classmethod
     def load(cls: Type[TM], config: str) -> TM:
+        """
+        Alternative constructor for loading a threat model object
+        from YAML.
+
+        Args:
+          config (str): Location on disk the YAML to load from is.
+
+        Returns:
+           threat_model (ThreatModel): threat model object
+        """
         (name, description, nodes, boundaries, dataflows, threats) = load(config)
         threat_model = cls(name, description)
         threat_model.add_elements(nodes)
@@ -96,6 +134,16 @@ class ThreatModel:
         return threat_model
 
     def save(self, config: Optional[str] = None) -> str:
+        """
+        Method to save the threat model (elements + threats)
+        to YAML.
+
+        Args:
+          config (str, optional): Location on disk to save the YAML.
+
+        Returns:
+          config (str): Location on disk the YAML was saved.
+        """
         config = save(
             list(self.elements.values()),
             list(self.threats.values()),
@@ -118,6 +166,9 @@ class ThreatModel:
             Threat,
         ],
     ) -> None:
+        """
+        Method to check for duplicate elements or threats in the threat model.
+        """
         try:
             self.elements[element.identifier]
         except KeyError:
@@ -148,6 +199,14 @@ class ThreatModel:
             BidirectionalDataflow,
         ],
     ) -> None:
+        """
+        Method to add an element to the threat model.
+        It will raise an exception if the element has already been
+        added.
+
+        Args:
+          element (Element): element to add
+        """
         self._check_for_duplicate_items(element)
 
         if isinstance(element, (Dataflow, BidirectionalDataflow)):
@@ -180,6 +239,14 @@ class ThreatModel:
         self.elements.update({element.identifier: element})
 
     def add_threat(self, threat: Threat) -> None:
+        """
+        Method to add a threat to the threat model.
+        It will raise an exception if the threat has already been
+        added.
+
+        Args:
+          threat (Threat): threat to add
+        """
         self._check_for_duplicate_items(threat)
         if not threat.child_threats:
             for child_threat_id in threat.child_threat_ids:
@@ -190,6 +257,12 @@ class ThreatModel:
         self.threats.update({threat.identifier: threat})
 
     def add_threats(self, threats: List[Threat]) -> None:
+        """
+        Method to add multiple threats to the threat model.
+
+        Args:
+          threats (list of Threat): threats to be added
+        """
         for threat in threats:
             self.add_threat(threat)
 
@@ -207,10 +280,23 @@ class ThreatModel:
             ]
         ],
     ) -> None:
+        """
+        Method to add multiple elements to the threat model.
+
+        Args:
+          elements (list of Element): elements to be added
+        """
         for element in elements:
             self.add_element(element)
 
     def draw(self, output: str = "dfd.png") -> None:
+        """
+        Method to draw the data flow diagram based on the elements
+        in the ThreatModel.
+
+        Args:
+          output (str): Location to write the output PNG
+        """
         dfd = pygraphviz.AGraph(fontname=FONTFACE, rankdir="LR")
 
         elements_to_draw = list(self.elements.values()).copy()

@@ -11,6 +11,10 @@ ThreatType = TypeVar("ThreatType", bound="Threat")
 
 
 class ThreatStatus(Enum):
+    """
+    ThreatStatus describes the statuses each threat can be in.
+    """
+
     UNMANAGED = "Unmanaged"
     MANAGED_INFORM = "Managed: Inform"
     MANAGED_TRANSFERRED = "Managed: Transferred"
@@ -22,6 +26,11 @@ class ThreatStatus(Enum):
 
 
 class OrdinalScore(Enum):
+    """
+    Ordinal scores are used for the impact and exploitaility scores on
+    threats.
+    """
+
     NONE = 0
     VERY_LOW = 1
     LOW = 2
@@ -36,6 +45,27 @@ class Threat:
     wrong". Multiple mitigations can map to a given threat. Each Threat object
     applies to a single DFD element. If a given attack can be applied to
     multiple DFD elements, one Threat must be generated for each DFD element.
+
+    Args:
+      identifier (str, UUID, optional): this is a short ID that is used
+        to map the threat to other objects (mitigations, DFD elements,
+        and other threats). If one is not provided it will be generated.
+      name (str): a short name that is used when drawing the threat in
+        diagrams.
+      description (str, optional): an optional description containing
+        more information about the given threat.
+      child_threats (list[Threat], optional): threats that become possible if this
+        threat is successfully exploited. This is used for the construction
+        and display of attack trees.
+      status (str, optional): the mitigation status of this threat.
+        Defaults to unmanaged if no status is provided.
+      base_impact (str, optional): the impact of this vulnerability
+        before any mitigations have been applied.
+      base_exploitability (str, optional): the ease of exploiting
+        this threat.
+      child_threat_ids (list[str, UUID], optional): used for specifying child
+        threats by ID. This is used when adding a threat to the threat model,
+        to populate child_threats.
     """
 
     STYLE = "filled"
@@ -53,29 +83,6 @@ class Threat:
         base_exploitability: Optional[str] = None,
         child_threat_ids: Optional[List[Union[str, UUID]]] = None,
     ):
-        """
-        Args:
-            identifier (str, UUID, optional): this is a short ID that is used
-                to map the threat to other objects (mitigations, DFD elements,
-                and other threats). If one is not provided it will be generated.
-            name (str): a short name that is used when drawing the threat in
-                diagrams.
-            description (str, optional): an optional description containing
-                more information about the given threat.
-            child_threats (list[Threat], optional): threats that become possible if this
-                threat is successfully exploited. This is used for the construction
-                and display of attack trees.
-            status (str, optional): the mitigation status of this threat.
-                Defaults to unmanaged if no status is provided.
-            base_impact (str, optional): the impact of this vulnerability
-                before any mitigations have been applied.
-            base_exploitability (str, optional): the ease of exploiting
-                this threat.
-            child_threat_ids (list[str, UUID], optional): used for specifying child
-                threats by ID. This is used when adding a threat to the threat model,
-                to populate child_threats.
-        """
-
         if not identifier:
             identifier = uuid4()
 
@@ -129,9 +136,23 @@ class Threat:
         )
 
     def add_child_threat(self, child_threat: Type[ThreatType]) -> None:
+        """
+        Adds a child threat to this threat. Child threats represent attacks
+        that become possible when this threat is successfully exploited.
+        They are used for the rendering of attack trees.
+
+        Args:
+          child_threat (Threat): threat object that is a child
+        """
         self.child_threats.append(child_threat)
 
     def draw(self, graph: pygraphviz.AGraph) -> None:
+        """
+        This method is called when we try to draw an AttackTree object.
+
+        Args:
+          graph (AGraph): the graphviz object that we will add a node to.
+        """
         graph.add_node(
             self.identifier,
             label=self.name,
@@ -161,16 +182,33 @@ class Threat:
 
 
 class AttackTree:
+    """
+    Represents a possible attack path through the system.
+
+    Args:
+      root_threat (Threat): the root threat in the tree.
+    """
+
     def __init__(self, root_threat: Threat):
         self.root_threat = root_threat
 
     def draw(self, output: Optional[str] = None) -> str:
+        """
+        This method is called when we try to draw an attack tree object.
+
+        Args:
+          output (str, optional): the location to save the rendered attack
+            tree on disk.
+
+        Returns:
+          output (str): The location the rendered attack tree was saved on disk.
+        """
         if not output:
             output = "{}.png".format(self.root_threat.identifier)
 
         graph = pygraphviz.AGraph(fontname=FONTFACE)
 
-        # This will recursively draw all child nodes.
+        # Recursively draw all child nodes.
         self.root_threat.draw(graph)
 
         graph.draw(output, prog="dot", args="-Gdpi=300")
