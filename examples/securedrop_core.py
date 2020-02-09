@@ -469,4 +469,5 @@ boundaries.append(airgapped_area)
 for boundary in boundaries:
     tm.add_element(boundary)
 
-tm.draw()
+if __name__ == '__main__':
+    tm.draw()
