@@ -392,14 +392,14 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(tm
     assert my_threat_model._generated_dot == expected_dot
 
 
-def test_load_simple_yaml_boundaries_nodes_flows():
+def test_project_load_simple_yaml_boundaries_nodes_flows():
     test_file = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "files/simple.yaml"
     )
 
     model = ThreatModel.load(test_file)
 
-    assert len(model.elements) == 4
+    assert len(model._elements) == 4
     assert len(model._boundaries) == 1
 
 
@@ -434,9 +434,9 @@ def test_threat_model_load_threats_from_yaml():
 
     model = ThreatModel.load(test_file)
 
-    assert len(model.elements) == 4
+    assert len(model._elements) == 4
     assert len(model._boundaries) == 1
-    assert len(model.threats) == 2
+    assert len(model._threats) == 2
 
 
 def test_threat_model_save_threats(tmpdir,):

@@ -73,7 +73,7 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
     assert tm.name == saved_name
     assert tm.description == saved_description
     assert (
-        list(tm.elements.values()) == saved_nodes + saved_boundaries + saved_dataflows
+        list(tm._elements.values()) == saved_nodes + saved_boundaries + saved_dataflows
     )
     assert len(saved_threats) == 0
 

@@ -44,10 +44,6 @@ class ThreatModel:
     Args:
       name (str, optional): threat model's name
       description (str, optional): threat model's description
-      elements (dict[str, uuid: Element]): dictionary containing a mapping of
-        identifiers (str or UUID) to Element objects.
-      threats (dict[str, uuid: Threat]): dictionary containing a mapping of identifiers
-        (str or UUID) to Threat objects.
     """
 
     def __init__(
@@ -55,7 +51,7 @@ class ThreatModel:
     ) -> None:
         self.name = name
         self.description = description
-        self.elements: Dict[
+        self._elements: Dict[
             Union[str, UUID],
             Union[
                 Element,
@@ -67,7 +63,7 @@ class ThreatModel:
                 BidirectionalDataflow,
             ],
         ] = {}
-        self.threats: Dict[Union[str, UUID], Threat] = {}
+        self._threats: Dict[Union[str, UUID], Threat] = {}
 
         self._generated_dot: str = ""
         self._boundaries: List[Boundary] = []
@@ -79,13 +75,13 @@ class ThreatModel:
         return "ThreatModel('{}', '{}', {}, {})".format(
             self.name,
             reprlib.repr(self.description),
-            reprlib.repr(self.elements),
-            reprlib.repr(self.threats),
+            reprlib.repr(self._elements),
+            reprlib.repr(self._threats),
         )
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
-        threat = self.threats.get(other, None)
-        element = self.elements.get(other, None)
+        threat = self._threats.get(other, None)
+        element = self._elements.get(other, None)
         if threat or element:
             return True
         return False
@@ -104,11 +100,11 @@ class ThreatModel:
     ]:
         """Allow []-based retrieval of elements and threats from this object
         based on their ID"""
-        element = self.elements.get(item, None)
+        element = self._elements.get(item, None)
         if element:
             return element
 
-        threat = self.threats.get(item, None)
+        threat = self._threats.get(item, None)
         if threat:
             return threat
         raise KeyError("Item {} not found".format(item))
@@ -145,8 +141,8 @@ class ThreatModel:
           config (str): Location on disk the YAML was saved.
         """
         config = save(
-            list(self.elements.values()),
-            list(self.threats.values()),
+            list(self._elements.values()),
+            list(self._threats.values()),
             self.name,
             self.description,
             config,
@@ -170,7 +166,7 @@ class ThreatModel:
         Method to check for duplicate elements or threats in the threat model.
         """
         try:
-            self.elements[element.identifier]
+            self._elements[element.identifier]
         except KeyError:
             pass
         else:
@@ -179,7 +175,7 @@ class ThreatModel:
             )
 
         try:
-            self.threats[element.identifier]
+            self._threats[element.identifier]
         except KeyError:
             pass
         else:
@@ -236,7 +232,7 @@ class ThreatModel:
                 else:
                     element.nodes.append(child)
 
-        self.elements.update({element.identifier: element})
+        self._elements.update({element.identifier: element})
 
     def add_threat(self, threat: Threat) -> None:
         """
@@ -254,7 +250,7 @@ class ThreatModel:
                 # TODO: Figure out expected "Type[<nothing>]" mypy
                 # reports below.
                 threat.add_child_threat(threat_obj)  # type: ignore
-        self.threats.update({threat.identifier: threat})
+        self._threats.update({threat.identifier: threat})
 
     def add_threats(self, threats: List[Threat]) -> None:
         """
@@ -299,7 +295,7 @@ class ThreatModel:
         """
         dfd = pygraphviz.AGraph(fontname=FONTFACE, rankdir="LR")
 
-        elements_to_draw = list(self.elements.values()).copy()
+        elements_to_draw = list(self._elements.values()).copy()
 
         # Iterate through the boundaries. If there's a a boundary in the members,
         # set the parent attribute.
@@ -345,7 +341,7 @@ class ThreatModel:
         Draw all attack trees and all subtrees, provided there
         is at least one node in the tree.
         """
-        for threat in list(self.threats.values()):
+        for threat in list(self._threats.values()):
             if threat.child_threats:
                 attack_tree = AttackTree(threat)
                 attack_tree.draw()
