@@ -9,9 +9,8 @@ from threat_modeling.data_flow import (
 from threat_modeling.project import ThreatModel
 
 """
-TODO: Make this less verbose, either by loading from YAML or keeping some
-reference to the threat model in the element
-definition so we don't need to explictly add them later?
+Example of using the (verbose) Python API.
+If you want save yourself some typing, define the system spec in YAML
 """
 
 tm = ThreatModel("SecureDrop")
@@ -469,5 +468,5 @@ boundaries.append(airgapped_area)
 for boundary in boundaries:
     tm.add_element(boundary)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tm.draw()

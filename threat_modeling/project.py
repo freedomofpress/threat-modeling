@@ -1,3 +1,4 @@
+import os
 import pygraphviz
 import reprlib
 from uuid import UUID
@@ -336,12 +337,21 @@ class ThreatModel:
         dfd.draw(output, prog="dot", args="-Gdpi=300")
         self._generated_dot = str(dfd)
 
-    def draw_attack_trees(self) -> None:
+    def draw_attack_trees(self, output_dir: Optional[str] = "") -> None:
         """
         Draw all attack trees and all subtrees, provided there
         is at least one node in the tree.
+
+        Args:
+          output_dir (str): All output PNGs will go into this directory
         """
         for threat in list(self._threats.values()):
             if threat.child_threats:
+                if output_dir and not os.path.exists(output_dir):
+                    output = "{}.png".format(threat.identifier)
+                    raise FileNotFoundError("Directory {} not found".format(output_dir))
+                else:
+                    output = "{}/{}.png".format(output_dir, threat.identifier)
+
                 attack_tree = AttackTree(threat)
-                attack_tree.draw()
+                attack_tree.draw(output)
