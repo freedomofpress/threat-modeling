@@ -229,9 +229,9 @@ class ThreatModel:
 
                 if isinstance(child_obj, Boundary):
                     # Set Boundary.nodes to consist of the individual nodes
-                    element.nodes += child_obj.members
+                    element.nodes = element.nodes + child_obj.members
                 else:
-                    element.nodes.append(child)
+                    element.nodes = element.nodes + [child]
 
         self._elements.update({element.identifier: element})
 
