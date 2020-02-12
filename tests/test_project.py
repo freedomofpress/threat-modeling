@@ -169,11 +169,11 @@ def test_threat_model_draws_data_flow_diagram_two_elements(request, tmpdir):
     my_threat_model.add_element(server)
     my_threat_model.add_element(client)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
     assert my_threat_model._generated_dot == expected_dot
 
 
-def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
+def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow(tmpdir):
     test_id_1 = "Server"
     server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
@@ -192,10 +192,12 @@ def test_threat_model_draws_data_flow_diagram_two_elements_single_dataflow():
     my_threat_model.add_element(client)
     my_threat_model.add_element(http_traffic)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow():
+def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow(
+    tmpdir,
+):
     test_id_1 = "Server"
     server = Element(name=test_id_1, identifier=test_id_1)
     test_id_2 = "Client"
@@ -209,10 +211,10 @@ def test_threat_model_draws_data_flow_diagram_two_elements_bidirectionaldataflow
     my_threat_model.add_element(client)
     my_threat_model.add_element(http_traffic)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_process():
+def test_threat_model_draws_data_flow_diagram_process(tmpdir):
     test_id_1 = "sshd"
     server = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "ssh client"
@@ -226,10 +228,10 @@ def test_threat_model_draws_data_flow_diagram_process():
     my_threat_model.add_element(client)
     my_threat_model.add_element(traffic)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_external_entity():
+def test_threat_model_draws_data_flow_diagram_external_entity(tmpdir):
     test_id_1 = "cron-apt"
     cron = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "apt server"
@@ -243,10 +245,10 @@ def test_threat_model_draws_data_flow_diagram_external_entity():
     my_threat_model.add_element(server)
     my_threat_model.add_element(traffic)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_duplicate_elements():
+def test_threat_model_draws_data_flow_diagram_duplicate_elements(tmpdir):
     name_1 = "apt server"
     test_id_1 = "APT_EXTERNAL_1"
     server_1 = ExternalEntity(name=name_1, identifier=test_id_1)
@@ -259,10 +261,10 @@ def test_threat_model_draws_data_flow_diagram_duplicate_elements():
     my_threat_model.add_element(server_1)
     my_threat_model.add_element(server_2)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_data_store():
+def test_threat_model_draws_data_flow_diagram_data_store(tmpdir):
     test_id_1 = "Web application"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -276,10 +278,10 @@ def test_threat_model_draws_data_flow_diagram_data_store():
     my_threat_model.add_element(db)
     my_threat_model.add_element(traffic)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
-def test_threat_model_draws_data_flow_diagram_boundary():
+def test_threat_model_draws_data_flow_diagram_boundary(tmpdir):
     test_id_1 = "Web application"
     webapp = Process(name=test_id_1, identifier=test_id_1)
     test_id_2 = "db"
@@ -294,7 +296,7 @@ def test_threat_model_draws_data_flow_diagram_boundary():
     my_threat_model.add_element(db)
     my_threat_model.add_element(boundary)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
 
 
 def test_threat_model_draws_data_flow_diagram_nested_boundary(tmpdir):
@@ -326,7 +328,7 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary(tmpdir):
     my_threat_model.add_element(boundary)
     my_threat_model.add_element(boundary_2)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
     assert my_threat_model._generated_dot == expected_dot
 
 
@@ -359,7 +361,7 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_reverse_order(tmpd
     my_threat_model.add_element(boundary_2)
     my_threat_model.add_element(boundary)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
     assert my_threat_model._generated_dot == expected_dot
 
 
@@ -388,7 +390,7 @@ def test_threat_model_draws_data_flow_diagram_nested_boundary_add_by_boundary(tm
     boundary = Boundary("trust", [boundary_2.identifier, test_id_2], identifier="trust")
     my_threat_model.add_element(boundary)
 
-    my_threat_model.draw()
+    my_threat_model.draw("{}/test.png".format(str(tmpdir)))
     assert my_threat_model._generated_dot == expected_dot
 
 
@@ -473,7 +475,7 @@ def test_threat_model_save_threats(tmpdir,):
     my_threat_model.add_threat(threat_2)
 
     output_file = "{}/test.yaml".format(str(tmpdir))
-    my_threat_model.save("{}/test.yaml".format(str(tmpdir)))
+    my_threat_model.save(output_file)
 
     with open(output_file) as f:
         result = yaml.load(f, Loader=yaml.SafeLoader)
@@ -484,9 +486,18 @@ def test_threat_model_save_threats(tmpdir,):
         assert item["base_impact"].lower() == "medium"
 
 
-def test_threat_model_generates_attack_trees():
+def test_threat_model_generates_attack_trees(tmpdir):
     test_file = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "files/threat_tree.yaml"
     )
     threat_model = ThreatModel.load(test_file)
-    threat_model.draw_attack_trees()
+    threat_model.draw_attack_trees(str(tmpdir))
+
+
+def test_threat_model_generates_attack_trees_no_output_directory(tmpdir):
+    test_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "files/threat_tree.yaml"
+    )
+    threat_model = ThreatModel.load(test_file)
+    with pytest.raises(FileNotFoundError):
+        threat_model.draw_attack_trees(str(tmpdir) + "teehee")

@@ -55,4 +55,5 @@ boundaries.append(system)
 for element in list(flows) + boundaries:
     tm.add_element(element)
 
-tm.draw()
+if __name__ == "__main__":
+    tm.draw()

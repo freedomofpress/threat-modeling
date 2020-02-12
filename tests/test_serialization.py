@@ -59,7 +59,7 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
 
     tm = ThreatModel.load(test_file)
 
-    config = tm.save()
+    config = tm.save("{}/test.yaml".format(str(tmpdir)))
 
     (
         saved_name,

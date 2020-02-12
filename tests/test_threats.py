@@ -13,7 +13,7 @@ def test_threat_repr():
     assert my_threat.identifier in repr(my_threat)
 
 
-def test_attack_trees():
+def test_attack_trees(tmpdir):
     test_file = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "files/attack_tree.dot"
     )
@@ -30,7 +30,7 @@ def test_attack_trees():
     assert my_threat_2 in my_threat.child_threats
 
     attack_tree = AttackTree(my_threat)
-    attack_tree.draw()
+    attack_tree.draw("{}_test.png".format(str(tmpdir)))
     assert attack_tree._generated_dot == expected_dot
 
 

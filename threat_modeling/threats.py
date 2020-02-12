@@ -192,20 +192,13 @@ class AttackTree:
     def __init__(self, root_threat: Threat):
         self.root_threat = root_threat
 
-    def draw(self, output: Optional[str] = None) -> str:
+    def draw(self, output: str) -> None:
         """
         This method is called when we try to draw an attack tree object.
 
         Args:
-          output (str, optional): the location to save the rendered attack
-            tree on disk.
-
-        Returns:
-          output (str): The location the rendered attack tree was saved on disk.
+          output (str): the location to save the rendered attack tree on disk.
         """
-        if not output:
-            output = "{}.png".format(self.root_threat.identifier)
-
         graph = pygraphviz.AGraph(fontname=FONTFACE)
 
         # Recursively draw all child nodes.
@@ -213,5 +206,3 @@ class AttackTree:
 
         graph.draw(output, prog="dot", args="-Gdpi=300")
         self._generated_dot = str(graph)
-
-        return output

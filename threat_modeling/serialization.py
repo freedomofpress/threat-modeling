@@ -137,7 +137,9 @@ def save(
     """
 
     if not config:
-        config = "threat_model_{}.yaml".format(time.strftime("%Y%m%d-%H%M%S"))
+        config = "threat_model_{}.yaml".format(
+            time.strftime("%Y%m%d-%H%M%S")
+        )  # pragma: no cover
 
     dataflows = []
     nodes = []
