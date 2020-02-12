@@ -334,27 +334,33 @@ class Boundary(Element):
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = None,
         parent: Optional[Element] = None,
-        nodes: Optional[List[Union[str, UUID]]] = None,
     ):
         super().__init__(name, identifier, description)
         self.members = (
             members  # Contains identifiers for boundaries, nodes in this boundary
         )
         self.parent = parent
-        self.nodes: List[Union[str, UUID]] = []
+        self.__nodes: List[Union[str, UUID]] = []
 
     def __str__(self) -> str:
         return "<Boundary {}: {}>".format(self.name, reprlib.repr(self.members))
 
     def __repr__(self) -> str:
-        return 'Boundary("{}", {}, "{}", "{}", {}, {})'.format(
+        return 'Boundary("{}", {}, "{}", "{}", {})'.format(
             self.name,
             reprlib.repr(self.members),
             self.identifier,
             reprlib.repr(self.description),
             self.parent,
-            reprlib.repr(self.nodes),
         )
+
+    @property
+    def nodes(self) -> List[Union[str, UUID]]:
+        return self.__nodes
+
+    @nodes.setter
+    def nodes(self, nodes: List[Union[str, UUID]]) -> None:
+        self.__nodes = nodes
 
     def draw(self, graph: AGraph) -> None:
         """
