@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import sys
 import os
 
 from threat_modeling.project import ThreatModel
@@ -14,8 +15,11 @@ tm = ThreatModel.load(args.input)
 if args.attack_trees:
     tm.draw_attack_trees()
     print('[*] Attack trees saved in cwd')
+    sys.exit(0)
 elif args.dfd:
     tm.draw()
     print('[*] DFD saved in dfd.png')
+    sys.exit(0)
 else:
     print('[!] Please specify an operation on this threat model! See --help for possible options.')
+    sys.exit(1)
