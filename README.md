@@ -30,7 +30,7 @@ optional arguments:
 
 ### YAML-based system specification
 
-The following YAML is an example specification:
+The following YAML is an example specification (example taken from [this paper (PDF)](https://www.cs.cmu.edu/~mabianto/papers/07_ase.pdf)):
 
 ```yaml
 ---
@@ -41,7 +41,7 @@ nodes:
   - name: Settings File
     type: Datastore
     id: DFD1
-  
+
   - name: Game File
     type: Datastore
     id: DFD2
@@ -60,7 +60,7 @@ nodes:
 
 boundaries:
   - name: System
-    members: 
+    members:
       - DFD1
       - DFD2
       - DFD3
@@ -71,7 +71,7 @@ dataflows:
     first_node: DFD1
     second_node: DFD5
     bidirectional: True
-  
+
   - name: Game Data
     first_node: DFD2
     second_node: DFD5
@@ -80,7 +80,7 @@ dataflows:
   - name: Graphics Rendering
     first_node: DFD3
     second_node: DFD5
-  
+
   - name: User Input
     first_node: DFD4
     second_node: DFD5
