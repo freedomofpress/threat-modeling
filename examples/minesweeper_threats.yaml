@@ -1,0 +1,61 @@
+---
+name: Minesweeper
+description: Minesweeper threat model
+
+nodes:
+  - name: Settings File
+    type: Datastore
+    id: DFD1
+
+  - name: Game File
+    type: Datastore
+    id: DFD2
+
+  - name: DirectX API
+    type: ExternalEntity
+    id: DFD3
+
+  - name: user
+    type: ExternalEntity
+    id: DFD4
+
+  - name: Game Application
+    type: Process
+    id: DFD5
+
+boundaries:
+  - name: System
+    members:
+      - DFD1
+      - DFD2
+      - DFD3
+      - DFD5
+
+dataflows:
+  - name: Settings
+    first_node: DFD1
+    second_node: DFD5
+    bidirectional: True
+
+  - name: Game Data
+    first_node: DFD2
+    second_node: DFD5
+    bidirectional: True
+
+  - name: Graphics Rendering
+    first_node: DFD3
+    second_node: DFD5
+
+  - name: User Input
+    first_node: DFD4
+    second_node: DFD5
+
+threats:
+- id: THREAT1
+  name: Attacker tampers with config file
+  description: An attacker is able to introduce malicious changes into the settings file
+  status: Unmanaged
+  base_impact: Medium
+  base_exploitability: Medium
+  dfd_element: DFD1
+  threat_type: Tampering

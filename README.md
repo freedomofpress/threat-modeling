@@ -26,7 +26,7 @@ optional arguments:
   --dfd           generate data flow diagram
 ```
 
-## Data Flow Diagram Examples
+## Data Flow Diagram
 
 ### YAML-based system specification
 
@@ -97,17 +97,25 @@ This will generate the following Data Flow Diagram:
 
 ![alt text](docs/images/minesweeper.png)
 
-### Python-based system specification
-
-The system can be specified either in Python (using the various objects in `threat_modeling.data_flow`) or using YAML and the `ThreatModel.load` class method.
-You _can_ use the Python API directly, though it's far less concise. You can reproduce the above example with the Python API by running `examples/minesweeper.py`:
-
-```
-$ python3 examples/minesweeper.py
-```
-
-The file will be saved by default in `dfd.png` in the current working directory.
-
 ## Threat Examples
 
-You can add the threats key.
+You can add the threats key to your system YAML to load existing threats for your system, for example:
+
+```
+threats:
+- id: THREAT1
+  name: Attacker tampers with config file
+  description: An attacker is able to introduce malicious changes into the settings file
+  status: Unmanaged
+  base_impact: Medium
+  base_exploitability: Medium
+  dfd_element: DFD1
+  threat_type: Tampering
+```
+
+Note that if threats are *not* linked to DFD elements, duplicate threats may be generated when you perform threat enumeration.
+
+```
+$ threatmodel --threat-generation-method STRIDE minesweeper.yaml
+[*] New threats found! Saved in minesweeper.yaml.
+```
