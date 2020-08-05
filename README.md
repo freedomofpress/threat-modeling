@@ -110,7 +110,7 @@ threats:
   base_impact: Medium
   base_exploitability: Medium
   dfd_element: DFD1
-  threat_type: Tampering
+  threat_category: Tampering
 ```
 
 Note that if threats are *not* linked to DFD elements, duplicate threats may be generated when you perform threat enumeration.
