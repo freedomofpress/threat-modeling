@@ -117,5 +117,6 @@ Note that if threats are *not* linked to DFD elements, duplicate threats may be 
 
 ```
 $ threatmodel --threat-generation-method STRIDE minesweeper.yaml
-[*] New threats found! Saved in minesweeper.yaml.
+[⏳] Loading threat model, standby!
+[🔪] New threats found! Saved in minesweeper_generated.yaml.
 ```
