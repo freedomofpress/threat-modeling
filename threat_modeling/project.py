@@ -16,6 +16,7 @@ from threat_modeling.data_flow import (
     FONTFACE,
 )
 from threat_modeling.exceptions import DuplicateIdentifier
+from threat_modeling.enumeration.base import ThreatEnumerationMethod
 from threat_modeling.serialization import load, save
 from threat_modeling.threats import AttackTree, Threat
 
@@ -355,3 +356,11 @@ class ThreatModel:
 
                 attack_tree = AttackTree(threat)
                 attack_tree.draw(output)
+
+    def generate_threats(self, method: ThreatEnumerationMethod) -> List[Threat]:
+        """
+        Generate threats and add them to the threat model.
+        """
+        new_threats = method.generate(self._threats.values(), self._elements.values())
+        self.add_threats(new_threats)
+        return new_threats  # type: ignore

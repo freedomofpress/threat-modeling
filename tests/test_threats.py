@@ -1,6 +1,6 @@
 import os
 
-from threat_modeling.threats import Threat, AttackTree
+from threat_modeling.threats import AttackTree, Threat, ThreatCategory
 
 
 def test_threat_str():
@@ -42,3 +42,22 @@ def test_set_metrics():
         base_exploitability="low",
     )
     assert my_threat.base_risk == 8
+
+
+def test_threat_categories():
+    my_threat = Threat(
+        "Attacker breaks into datacenter",
+        "THREAT1",
+        base_impact="high",
+        base_exploitability="low",
+        threat_category="privilege escalation",
+    )
+    assert my_threat.threat_category == ThreatCategory.PRIVILEGE_ESCALATION
+
+    my_threat = Threat(
+        "Attacker breaks into datacenter",
+        "THREAT1",
+        base_impact="high",
+        base_exploitability="low",
+    )
+    assert my_threat.threat_category == ThreatCategory.UNKNOWN

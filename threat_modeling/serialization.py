@@ -97,6 +97,7 @@ def load(
         status = threat.get("status", None)
         base_impact = threat.get("base_impact", None)
         base_exploitability = threat.get("base_exploitability", None)
+        threat_category = threat.get("threat_category", None)
         threat_obj = Threat(
             name=name,
             identifier=identifier,
@@ -105,6 +106,7 @@ def load(
             base_impact=base_impact,
             base_exploitability=base_exploitability,
             child_threat_ids=child_threat_ids,
+            threat_category=threat_category,
         )
         threats.append(threat_obj)
 
@@ -182,6 +184,8 @@ def save(
             threat_dict.update({"base_impact": threat.base_impact.name})
         if threat.base_exploitability:
             threat_dict.update({"base_exploitability": threat.base_exploitability.name})
+        if threat.threat_category:
+            threat_dict.update({"threat_category": threat.threat_category.name})
         if threat.child_threats:
             threat_dict.update(
                 {
@@ -193,11 +197,11 @@ def save(
         threats_to_save.append(threat_dict)
 
     with open(config, "w") as f:
-        yaml.dump({"name": name}, f)
-        yaml.dump({"description": description}, f)
-        yaml.dump({"nodes": nodes}, f)
-        yaml.dump({"dataflows": dataflows}, f)
-        yaml.dump({"boundaries": boundaries}, f)
-        yaml.dump({"threats": threats_to_save}, f)
+        yaml.dump({"name": name}, f, sort_keys=False)
+        yaml.dump({"description": description}, f, sort_keys=False)
+        yaml.dump({"nodes": nodes}, f, sort_keys=False)
+        yaml.dump({"dataflows": dataflows}, f, sort_keys=False)
+        yaml.dump({"boundaries": boundaries}, f, sort_keys=False)
+        yaml.dump({"threats": threats_to_save}, f, sort_keys=False)
 
     return config

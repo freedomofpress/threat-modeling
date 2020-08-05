@@ -11,6 +11,7 @@ from threat_modeling.data_flow import (
     Datastore,
     Boundary,
 )
+from threat_modeling.enumeration.stride import NaiveSTRIDE
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.project import ThreatModel
 from threat_modeling.threats import Threat
@@ -501,3 +502,23 @@ def test_threat_model_generates_attack_trees_no_output_directory(tmpdir):
     threat_model = ThreatModel.load(test_file)
     with pytest.raises(FileNotFoundError):
         threat_model.draw_attack_trees(str(tmpdir) + "teehee")
+
+
+def test_threat_model_threat_enumeration(tmpdir,):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    method = NaiveSTRIDE()
+    threats = my_threat_model.generate_threats(method)
+
+    assert len(threats) == 6 * 3

@@ -39,6 +39,20 @@ class OrdinalScore(Enum):
     CRITICAL = 5
 
 
+class ThreatCategory(Enum):
+    """
+    ThreatCategory describes the high-level type of the threat.
+    """
+
+    SPOOFING = "Spoofing"
+    TAMPERING = "Tampering"
+    REPUDIATION = "Repudiation"
+    INFORMATION_DISCLOSURE = "Information Disclosure"
+    DENIAL_OF_SERVICE = "Denial of Service"
+    PRIVILEGE_ESCALATION = "Privilege Escalation"
+    UNKNOWN = "Unknown"
+
+
 class Threat:
     """
     Each threat object represents a possible attack or "thing that can go
@@ -66,6 +80,7 @@ class Threat:
       child_threat_ids (list[str, UUID], optional): used for specifying child
         threats by ID. This is used when adding a threat to the threat model,
         to populate child_threats.
+      threat_category (str, optional): see possible choices in ThreatCategory.
     """
 
     STYLE = "filled"
@@ -82,6 +97,7 @@ class Threat:
         base_impact: Optional[str] = None,
         base_exploitability: Optional[str] = None,
         child_threat_ids: Optional[List[Union[str, UUID]]] = None,
+        threat_category: Optional[str] = None,
     ):
         if not identifier:
             identifier = uuid4()
@@ -94,6 +110,14 @@ class Threat:
             self.status: Optional[ThreatStatus] = status_lookup
         else:  # No status provided
             self.status = ThreatStatus.UNMANAGED
+
+        if threat_category:
+            threat_category_lookup = ThreatCategory[
+                threat_category.replace(" ", "_").upper()
+            ]
+            self.threat_category: Optional[ThreatCategory] = threat_category_lookup
+        else:
+            self.threat_category = ThreatCategory.UNKNOWN
 
         if child_threats:
             self.child_threats = child_threats.copy()
