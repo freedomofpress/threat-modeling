@@ -193,11 +193,11 @@ def save(
         threats_to_save.append(threat_dict)
 
     with open(config, "w") as f:
-        yaml.dump({"name": name}, f)
-        yaml.dump({"description": description}, f)
-        yaml.dump({"nodes": nodes}, f)
-        yaml.dump({"dataflows": dataflows}, f)
-        yaml.dump({"boundaries": boundaries}, f)
-        yaml.dump({"threats": threats_to_save}, f)
+        yaml.dump({"name": name}, f, sort_keys=False)
+        yaml.dump({"description": description}, f, sort_keys=False)
+        yaml.dump({"nodes": nodes}, f, sort_keys=False)
+        yaml.dump({"dataflows": dataflows}, f, sort_keys=False)
+        yaml.dump({"boundaries": boundaries}, f, sort_keys=False)
+        yaml.dump({"threats": threats_to_save}, f, sort_keys=False)
 
     return config
