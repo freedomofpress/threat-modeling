@@ -3,11 +3,9 @@ import pygraphviz
 import reprlib
 from uuid import uuid4, UUID
 
-from typing import List, Optional, Union, Type, TypeVar
+from typing import List, Optional, Union
 
 from threat_modeling.data_flow import FONTFACE, FONTSIZE, ELEMENT_COLOR
-
-ThreatType = TypeVar("ThreatType", bound="Threat")
 
 
 class ThreatStatus(Enum):
@@ -79,8 +77,9 @@ class Threat:
         this threat.
       child_threat_ids (list[str, UUID], optional): used for specifying child
         threats by ID. This is used when adding a threat to the threat model,
-        to populate child_threats.
+        to populate child_threats (done via a method on ThreatModel).
       threat_category (str, optional): see possible choices in ThreatCategory.
+      dfd_element (str, optional): ID of the threat that this threat corresponds to.
     """
 
     STYLE = "filled"
@@ -92,12 +91,13 @@ class Threat:
         name: str,
         identifier: Optional[Union[str, UUID]] = None,
         description: Optional[str] = "",
-        child_threats: Optional[List[Type[ThreatType]]] = None,
+        child_threats: Optional[List["Threat"]] = None,
         status: Optional[str] = None,
         base_impact: Optional[str] = None,
         base_exploitability: Optional[str] = None,
         child_threat_ids: Optional[List[Union[str, UUID]]] = None,
         threat_category: Optional[str] = None,
+        dfd_element: Optional[str] = None,
     ):
         if not identifier:
             identifier = uuid4()
@@ -127,7 +127,7 @@ class Threat:
         if child_threat_ids:
             self.child_threat_ids = child_threat_ids.copy()
         else:
-            self.child_threat_ids = []
+            self.child_threat_ids = [x.identifier for x in self.child_threats]
 
         # Metrics
         if base_impact:
@@ -151,6 +151,8 @@ class Threat:
         else:
             self.base_risk = self.base_impact.value * self.base_exploitability.value
 
+        self.dfd_element = dfd_element
+
     def __str__(self) -> str:
         return "<Threat {}: {}>".format(self.identifier, self.name)
 
@@ -159,7 +161,7 @@ class Threat:
             self.name, self.identifier, reprlib.repr(self.description)
         )
 
-    def add_child_threat(self, child_threat: Type[ThreatType]) -> None:
+    def add_child_threat(self, child_threat: "Threat") -> None:
         """
         Adds a child threat to this threat. Child threats represent attacks
         that become possible when this threat is successfully exploited.
@@ -188,11 +190,7 @@ class Threat:
         )
 
         for child_threat in self.child_threats:
-            # The below line mypy reports error: Too few arguments for "draw" of
-            # "Threat".
-            # TODO: This is a false positive but I'm not sure why (something to do with
-            # the custom TypeDef for TH... ?).
-            child_threat.draw(graph)  # type: ignore
+            child_threat.draw(graph)
             parent_node = graph.get_node(self.identifier)
             child_node = graph.get_node(child_threat.identifier)
             graph.add_edge(

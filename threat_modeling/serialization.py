@@ -1,7 +1,7 @@
 import time
 import yaml
 
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from threat_modeling.data_flow import (
     Element,
@@ -92,21 +92,24 @@ def load(
     for threat in config_data.get("threats", []):
         identifier = threat.get("id", None)
         description = threat.get("description", None)
-        name = threat.get("name", None)
+        name = threat["name"]
         child_threat_ids = threat.get("child_threats", None)
         status = threat.get("status", None)
         base_impact = threat.get("base_impact", None)
         base_exploitability = threat.get("base_exploitability", None)
         threat_category = threat.get("threat_category", None)
+        dfd_element = threat.get("dfd_element", None)
         threat_obj = Threat(
             name=name,
             identifier=identifier,
             description=description,
+            child_threats=None,
             status=status,
             base_impact=base_impact,
             base_exploitability=base_exploitability,
             child_threat_ids=child_threat_ids,
             threat_category=threat_category,
+            dfd_element=dfd_element,
         )
         threats.append(threat_obj)
 
@@ -147,7 +150,7 @@ def save(
     nodes = []
     boundaries = []
     for element in elements:
-        element_dict = {"id": str(element.identifier)}
+        element_dict: Dict[str, Union[List[str], str]] = {"id": str(element.identifier)}
         if element.name:
             element_dict.update({"name": element.name})
         if element.description:
@@ -165,7 +168,7 @@ def save(
         elif isinstance(element, Boundary):
             if element.parent:
                 element_dict.update({"parent": str(element.parent.identifier)})
-            element_dict.update({"members": str([str(x) for x in element.members])})
+            element_dict.update({"members": [str(x) for x in element.members]})
             boundaries.append(element_dict)
         else:
             element_dict.update({"type": type(element).__name__})
@@ -173,7 +176,7 @@ def save(
 
     threats_to_save = []
     for threat in threats:
-        threat_dict = {"id": str(threat.identifier)}
+        threat_dict: Dict[str, Union[List[str], str]] = {"id": str(threat.identifier)}
         if threat.name:
             threat_dict.update({"name": threat.name})
         if threat.description:
@@ -186,13 +189,11 @@ def save(
             threat_dict.update({"base_exploitability": threat.base_exploitability.name})
         if threat.threat_category:
             threat_dict.update({"threat_category": threat.threat_category.name})
+        if threat.dfd_element:
+            threat_dict.update({"dfd_element": threat.dfd_element})
         if threat.child_threats:
             threat_dict.update(
-                {
-                    "child_threats": str(
-                        [str(x.identifier) for x in threat.child_threats]
-                    )
-                }
+                {"child_threats": [str(x.identifier) for x in threat.child_threats]}
             )
         threats_to_save.append(threat_dict)
 

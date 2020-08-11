@@ -522,3 +522,163 @@ def test_threat_model_threat_enumeration(tmpdir,):
     threats = my_threat_model.generate_threats(method)
 
     assert len(threats) == 6 * 3
+
+
+def test_threat_model_check_fail_on_unmanaged_threats(tmpdir):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    threat_2 = Threat(
+        name="Weak password hashing used",
+        identifier="THREAT2",
+        status="unmanaged",
+        base_exploitability="medium",
+        base_impact="medium",
+    )
+    threat = Threat(
+        name="SQLi in web application",
+        identifier="THREAT1",
+        description="Attacker can dump the user table",
+        status="unmanaged",
+        base_impact="medium",
+        base_exploitability="medium",
+        child_threats=[threat_2],
+    )
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_threat(threat)
+    my_threat_model.add_threat(threat_2)
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    result, is_passed = my_threat_model.check()
+
+    assert not is_passed
+
+
+def test_threat_model_check_populates_child_threats(tmpdir):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    threat_2 = Threat(
+        name="Weak password hashing used",
+        identifier="THREAT2",
+        status="Managed Accepted",
+        base_exploitability="medium",
+        base_impact="medium",
+    )
+    threat = Threat(
+        name="SQLi in web application",
+        identifier="THREAT1",
+        description="Attacker can dump the user table",
+        status="Managed Accepted",
+        base_impact="medium",
+        base_exploitability="medium",
+        child_threat_ids=["THREAT2"],
+    )
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_threat(threat)
+    my_threat_model.add_threat(threat_2)
+
+    assert threat_2 not in threat.child_threats
+    assert threat.child_threat_ids == ["THREAT2"]
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    result, is_passed = my_threat_model.check()
+
+    assert is_passed
+    assert threat_2 in threat.child_threats
+    assert threat.child_threat_ids == ["THREAT2"]
+
+
+def test_threat_model_check_fails_on_unknown_child_threats(tmpdir):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    threat = Threat(
+        name="SQLi in web application",
+        identifier="THREAT1",
+        description="Attacker can dump the user table",
+        status="Managed Accepted",
+        base_impact="medium",
+        base_exploitability="medium",
+        child_threat_ids=["THREAT3"],
+    )
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_threat(threat)
+
+    assert threat.child_threat_ids == ["THREAT3"]
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    result, is_passed = my_threat_model.check()
+
+    assert not is_passed
+    assert threat.child_threat_ids == ["THREAT3"]
+
+
+def test_threat_model_check_populates_child_threat_ids(tmpdir):
+    test_id_1 = "Web application frontend"
+    webapp = Process(name=test_id_1, identifier=test_id_1)
+    test_id_2 = "db"
+    db = Datastore(name=test_id_2, identifier=test_id_2)
+    test_id_3 = "Web application backend"
+    webapp_2 = Process(name=test_id_3, identifier=test_id_3)
+
+    threat_2 = Threat(
+        name="Weak password hashing used",
+        identifier="THREAT2",
+        status="Managed Accepted",
+        base_exploitability="medium",
+        base_impact="medium",
+    )
+    threat = Threat(
+        name="SQLi in web application",
+        identifier="THREAT1",
+        description="Attacker can dump the user table",
+        status="Managed Accepted",
+        base_impact="medium",
+        base_exploitability="medium",
+        child_threats=[threat_2],
+    )
+    threat.child_threat_ids = []
+
+    my_threat_model = ThreatModel()
+
+    my_threat_model.add_threat(threat)
+    my_threat_model.add_threat(threat_2)
+
+    assert "THREAT2" not in threat.child_threat_ids
+
+    my_threat_model.add_element(webapp)
+    my_threat_model.add_element(db)
+    my_threat_model.add_element(webapp_2)
+
+    result, is_passed = my_threat_model.check()
+
+    assert is_passed
+    assert threat.child_threat_ids == ["THREAT2"]

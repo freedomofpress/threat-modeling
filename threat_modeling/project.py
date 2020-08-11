@@ -3,7 +3,7 @@ import pygraphviz
 import reprlib
 from uuid import UUID
 
-from typing import Dict, List, Optional, Type, TypeVar, Union, Sequence
+from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union, Sequence
 
 from threat_modeling.data_flow import (
     Boundary,
@@ -18,7 +18,7 @@ from threat_modeling.data_flow import (
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.enumeration.base import ThreatEnumerationMethod
 from threat_modeling.serialization import load, save
-from threat_modeling.threats import AttackTree, Threat
+from threat_modeling.threats import AttackTree, Threat, ThreatStatus
 
 TM = TypeVar("TM", bound="ThreatModel")
 
@@ -129,6 +129,11 @@ class ThreatModel:
         threat_model.add_elements(boundaries)
         threat_model.add_elements(dataflows)
         threat_model.add_threats(threats)
+
+        findings, _ = threat_model.check()
+        if findings:
+            print("\n".join(findings))
+
         return threat_model
 
     def save(self, config: Optional[str] = None) -> str:
@@ -248,10 +253,16 @@ class ThreatModel:
         self._check_for_duplicate_items(threat)
         if not threat.child_threats:
             for child_threat_id in threat.child_threat_ids:
-                threat_obj = self[child_threat_id]
-                # TODO: Figure out expected "Type[<nothing>]" mypy
-                # reports below.
-                threat.add_child_threat(threat_obj)  # type: ignore
+                try:
+                    threat_obj = self[child_threat_id]
+                    # TODO: Figure out expected "Type[<nothing>]" mypy
+                    # reports below.
+                    threat.add_child_threat(threat_obj)  # type: ignore
+                except KeyError:
+                    # This just means that we haven't loaded the other threat
+                    # yet. Let's not raise an error yet as we may resolve in
+                    # the check() method once the rest of the threats are loaded.
+                    pass
         self._threats.update({threat.identifier: threat})
 
     def add_threats(self, threats: List[Threat]) -> None:
@@ -338,6 +349,58 @@ class ThreatModel:
         dfd.draw(output, prog="dot", args="-Gdpi=300")
         self._generated_dot = str(dfd)
 
+    def check(self) -> Tuple[List[str], bool]:
+        """
+        Check for inconsistencies in the threat model and raise them to the
+        user to be addressed. This is a sort of linter for your threat model that
+        can be integrated into CI/CD pipelines.
+
+        This target currently:
+        * (fail) checks that the Threat.child_threats attr has been populated,
+          fills in any remaining threats, and fails on references to non-existant
+          threats.
+        * (fail) unmanaged threats in threat model.
+
+        In the future it could:
+        * (warn) DFD elements with no threats.
+        * (warn) threats that correspond to no DFD elements.
+        * (warn) threats considered unmitigated when they have applied mitigations.
+
+        Returns:
+          findings (List[str]): Warnings / failures to be saved or printed to the user.
+          is_passing (bool): Whether this lint/check run was successful.
+        """
+
+        findings = []
+        is_passing = True
+
+        for threat in list(self._threats.values()):
+            # Check all child_threat_ids correspond to an entry in child_threats.
+            for child_threat_id in threat.child_threat_ids:
+                if child_threat_id not in [x.identifier for x in threat.child_threats]:
+                    try:
+                        new_threat = self._threats[child_threat_id]
+                        threat.child_threats.append(new_threat)
+                    except KeyError:
+                        error = f"[😒] Could not find child threat ID {child_threat_id} \
+                                    (referenced by parent threat {threat.identifier})"
+                        findings.append(error)
+                        is_passing = False
+
+            # Now check all child_threats correspond to an entry in child_threat_ids.
+            for child_threat in threat.child_threats:
+                if child_threat.identifier not in threat.child_threat_ids:
+                    threat.child_threat_ids.append(child_threat.identifier)
+
+        # Check if any threats are unmanaged
+        for threat in list(self._threats.values()):
+            if threat.status == ThreatStatus.UNMANAGED:
+                is_passing = False  # Fail on unmanaged threats
+                error = f"[💣] Threat ID {threat.identifier} needs triage!"
+                findings.append(error)
+
+        return findings, is_passing
+
     def draw_attack_trees(self, output_dir: Optional[str] = "") -> None:
         """
         Draw all attack trees and all subtrees, provided there
@@ -363,4 +426,5 @@ class ThreatModel:
         """
         new_threats = method.generate(self._threats.values(), self._elements.values())
         self.add_threats(new_threats)
-        return new_threats  # type: ignore
+        assert isinstance(new_threats, list)
+        return new_threats

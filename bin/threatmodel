@@ -12,21 +12,22 @@ SUPPORTED_THREAT_GEN = {
 }
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--check", help="lint/check your threat model definition", action="store_true")
 parser.add_argument("--attack-trees", help="generate attack trees", action="store_true")
 parser.add_argument("--dfd", help="generate data flow diagram", action="store_true")
 parser.add_argument("--generate-threats", help="generate threats", action="store_true")
 parser.add_argument("input", help="system specification (yaml)")
 args = parser.parse_args()
 
-print('[⏳] Loading threat model, standby!')
+print('[⏳] Loading threat model, standby...')
 tm = ThreatModel.load(args.input)
 if args.attack_trees:
     tm.draw_attack_trees()
-    print('[*] Attack trees generated! Saved in cwd')
+    print('[✅] Attack trees generated. Saved in cwd')
     sys.exit(0)
 elif args.dfd:
     tm.draw()
-    print('[*] DFD drawn! Saved in dfd.png')
+    print('[✅] DFD drawn! Saved in dfd.png')
     sys.exit(0)
 elif args.generate_threats:
     method = NaiveSTRIDE()
@@ -36,8 +37,17 @@ elif args.generate_threats:
         tm.save(output_yaml)
         print(f'[🔪] New threats found! Saved in {output_yaml}.')
     else:
-        print('[✅] No new threats found!')
+        print('[✅] No new threats found.')
     sys.exit(0)
+elif args.check:
+    _, passed = tm.check()
+    if passed:
+        print('[✅] No issues found in threat model definition.')
+        sys.exit(0)
+    else:
+        print('[🔪] Issues to address in threat model definition.')
+        sys.exit(1)
+
 else:
-    print('[!] Please specify an operation on this threat model! See --help for possible options.')
+    print('[!] Please specify an operation on this threat model. See --help for possible options.')
     sys.exit(1)

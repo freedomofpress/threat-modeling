@@ -13,7 +13,7 @@ nodes:
 
 boundaries:
   - name: System
-    members: 
+    members:
       - DFD1
 
 dataflows:
@@ -27,6 +27,7 @@ threats:
     status: unmanaged
     base_impact: medium
     base_exploitability: medium
+    dfd_element: DFD1
 
   - name: SQLi in web application
     id: THREAT1
