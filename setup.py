@@ -21,7 +21,7 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     scripts=['bin/threatmodel'],
     install_requires=["pygraphviz>=1.5", "PyYAML>=5.3"],
 )
