@@ -5,6 +5,10 @@
 
 This is a library of threat modeling tools in Python inspired by related projects like [pytm](https://github.com/izar/pytm). Data Flow Diagrams (DFDs) can be generated using a YAML specification of the system architecture. If you include the threats and their child-parent relationships in the YAML specification, you can also generate attack trees.
 
+This YAML document can be stored in version control and updated to keep track the DFD structure, the list of threats that have been considered, their mitigation status, and what compensating security controls have been applied.
+
+This library considers countermeasures to be first-class objects, in addition to threats and DFD elements. This is done to make it easier to track why countermeasures have been implemented/applied and to aid decision-making when deciding between implementing various proposed countermeasures.
+
 ## Installation
 
 ```
@@ -15,15 +19,16 @@ pip install --editable .
 
 ```
 $ threatmodel --help
-usage: threatmodel [-h] [--attack-trees] [--dfd] input
+usage: threatmodel [-h] [--attack-trees] [--dfd] [--generate-threats] input
 
 positional arguments:
-  input           system specification (yaml)
+  input               system specification (yaml)
 
 optional arguments:
-  -h, --help      show this help message and exit
-  --attack-trees  generate attack trees
-  --dfd           generate data flow diagram
+  -h, --help          show this help message and exit
+  --attack-trees      generate attack trees
+  --dfd               generate data flow diagram
+  --generate-threats  generate threats
 ```
 
 ## Data Flow Diagram
@@ -112,6 +117,18 @@ threats:
   dfd_element: DFD1
   threat_category: Tampering
 ```
+
+### Allowed keys for threats
+
+* `name` (required)
+* `id` (optional)
+* `description` (optional)
+* `status` (optional, defaults to unmanaged if missing)
+* `base_impact` (optional)
+* `base_exploitability` (optional)
+* `dfd_element` (optional)
+* `threat_category` (optional, defaults to unknown if missing)
+* `child_threats` (optional, list of threat IDs that an attacker can attempt next)
 
 Note that if threats are *not* linked to DFD elements, duplicate threats may be generated when you perform threat enumeration.
 
