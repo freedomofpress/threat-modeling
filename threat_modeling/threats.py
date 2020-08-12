@@ -6,6 +6,7 @@ from uuid import uuid4, UUID
 from typing import List, Optional, Union
 
 from threat_modeling.data_flow import FONTFACE, FONTSIZE, ELEMENT_COLOR
+from threat_modeling.mitigations import Mitigation
 
 
 class ThreatStatus(Enum):
@@ -80,6 +81,7 @@ class Threat:
         to populate child_threats (done via a method on ThreatModel).
       threat_category (str, optional): see possible choices in ThreatCategory.
       dfd_element (str, optional): ID of the threat that this threat corresponds to.
+      mitigations (List[Mitigation], optional): mitigations applied to this threat.
     """
 
     STYLE = "filled"
@@ -90,7 +92,7 @@ class Threat:
         self,
         name: str,
         identifier: Optional[Union[str, UUID]] = None,
-        description: Optional[str] = "",
+        description: str = "",
         child_threats: Optional[List["Threat"]] = None,
         status: Optional[str] = None,
         base_impact: Optional[str] = None,
@@ -98,12 +100,11 @@ class Threat:
         child_threat_ids: Optional[List[Union[str, UUID]]] = None,
         threat_category: Optional[str] = None,
         dfd_element: Optional[str] = None,
+        mitigations: Optional[List[Mitigation]] = None,
+        mitigation_ids: Optional[List[Union[str, UUID]]] = None,
     ):
-        if not identifier:
-            identifier = uuid4()
-
         self.name = name
-        self.identifier = identifier
+        self.identifier = identifier or uuid4()
         self.description = description
         if status:
             status_lookup = ThreatStatus[status.replace(" ", "_").upper()]
@@ -152,6 +153,15 @@ class Threat:
             self.base_risk = self.base_impact.value * self.base_exploitability.value
 
         self.dfd_element = dfd_element
+        if mitigations:
+            self.mitigations = mitigations.copy()
+        else:
+            self.mitigations = []
+
+        if mitigation_ids:
+            self.mitigation_ids = mitigation_ids.copy()
+        else:
+            self.mitigation_ids = [x.identifier for x in self.mitigations]
 
     def __str__(self) -> str:
         return "<Threat {}: {}>".format(self.identifier, self.name)

@@ -18,6 +18,7 @@ from threat_modeling.data_flow import (
 )
 from threat_modeling.exceptions import DuplicateIdentifier
 from threat_modeling.enumeration.base import ThreatEnumerationMethod
+from threat_modeling.mitigations import Mitigation
 from threat_modeling.serialization import load, save
 from threat_modeling.threats import AttackTree, Threat, ThreatStatus
 
@@ -26,9 +27,10 @@ TM = TypeVar("TM", bound="ThreatModel")
 
 class ThreatModel:
     """
-    Primary threat model object. Users add elements and threats to this model
-    and can call its utility methods to draw useful diagrams or perform analysis
-    on the threat model as a whole.
+    Primary threat model object. Users add elements, threats, and mitigations
+    to this model and can call its utility methods to draw useful diagrams,
+    enumerate threats, check for inconsistencies/unmanaged threats, and perform
+    analysis on the threat model as a whole.
 
     One should use the add_element and add_threat methods to add elements
     or threats:
@@ -67,6 +69,7 @@ class ThreatModel:
             ],
         ] = {}
         self._threats: Dict[Union[str, UUID], Threat] = {}
+        self._mitigations: Dict[Union[str, UUID], Mitigation] = {}
 
         self._generated_dot: str = ""
         self._boundaries: List[Boundary] = []
@@ -75,17 +78,19 @@ class ThreatModel:
         return "<ThreatModel {}>".format(self.name)
 
     def __repr__(self) -> str:
-        return "ThreatModel('{}', '{}', {}, {})".format(
+        return "ThreatModel('{}', '{}', {}, {}, {})".format(
             self.name,
             reprlib.repr(self.description),
             reprlib.repr(self._elements),
             reprlib.repr(self._threats),
+            reprlib.repr(self._mitigations),
         )
 
     def __contains__(self, other: Union[str, UUID]) -> bool:
         threat = self._threats.get(other, None)
         element = self._elements.get(other, None)
-        if threat or element:
+        mitigation = self._mitigations.get(other, None)
+        if threat or element or mitigation:
             return True
         return False
 
@@ -100,8 +105,9 @@ class ThreatModel:
         Dataflow,
         BidirectionalDataflow,
         Threat,
+        Mitigation,
     ]:
-        """Allow []-based retrieval of elements and threats from this object
+        """Allow []-based retrieval of items from this ThreatModel
         based on their ID"""
         element = self._elements.get(item, None)
         if element:
@@ -110,6 +116,11 @@ class ThreatModel:
         threat = self._threats.get(item, None)
         if threat:
             return threat
+
+        mitigation = self._mitigations.get(item, None)
+        if mitigation:
+            return mitigation
+
         raise KeyError("Item {} not found".format(item))
 
     @classmethod
@@ -124,12 +135,15 @@ class ThreatModel:
         Returns:
            threat_model (ThreatModel): threat model object
         """
-        (name, description, nodes, boundaries, dataflows, threats) = load(config)
+        (name, description, nodes, boundaries, dataflows, threats, mitigations) = load(
+            config
+        )
         threat_model = cls(name, description)
         threat_model.add_elements(nodes)
         threat_model.add_elements(boundaries)
         threat_model.add_elements(dataflows)
         threat_model.add_threats(threats)
+        threat_model.add_mitigations(mitigations)
 
         findings, _ = threat_model.check()
         if findings:
@@ -151,6 +165,7 @@ class ThreatModel:
         config = save(
             list(self._elements.values()),
             list(self._threats.values()),
+            list(self._mitigations.values()),
             self.name,
             self.description,
             config,
@@ -168,6 +183,7 @@ class ThreatModel:
             Dataflow,
             BidirectionalDataflow,
             Threat,
+            Mitigation,
         ],
     ) -> None:
         """
@@ -184,6 +200,15 @@ class ThreatModel:
 
         try:
             self._threats[element.identifier]
+        except KeyError:
+            pass
+        else:
+            raise DuplicateIdentifier(
+                "already have {} in this threat model".format(element.identifier)
+            )
+
+        try:
+            self._mitigations[element.identifier]
         except KeyError:
             pass
         else:
@@ -279,7 +304,31 @@ class ThreatModel:
             try:
                 self.add_threat(threat)
             except DuplicateIdentifier:
-                logging.info(f"duplicate threat: {threat.identifier} not adding again")
+                logging.info(f"duplicate threat: {threat.identifier}, skipping")
+
+    def add_mitigation(self, mitigation: Mitigation) -> None:
+        """
+        Method to add a mitigation to the threat model.
+        It will raise an exception if the mitigation has already been
+        added.
+
+        Args:
+          mitigation (Threat): mitigation to add
+        """
+        self._check_for_duplicate_items(mitigation)
+        self._mitigations.update({mitigation.identifier: mitigation})
+
+    def add_mitigations(self, mitigations: List[Mitigation]) -> None:
+        """
+        Method to add multiple threats to the threat model.
+        If a threat already exists in the model, it will not
+        add it again.
+
+        Args:
+          threats (list of Threat): threats to be added
+        """
+        for mitigation in mitigations:
+            self.add_mitigation(mitigation)
 
     def add_elements(
         self,
@@ -388,8 +437,10 @@ class ThreatModel:
                         new_threat = self._threats[child_threat_id]
                         threat.child_threats.append(new_threat)
                     except KeyError:
-                        error = f"[😒] Could not find child threat ID {child_threat_id} \
-                                    (referenced by parent threat {threat.identifier})"
+                        error = (
+                            f"[😒] Could not find child threat ID {child_threat_id} "
+                            + f"(referenced by parent threat {threat.identifier})"
+                        )
                         findings.append(error)
                         is_passing = False
 
@@ -397,6 +448,25 @@ class ThreatModel:
             for child_threat in threat.child_threats:
                 if child_threat.identifier not in threat.child_threat_ids:
                     threat.child_threat_ids.append(child_threat.identifier)
+
+            # Check all mitigation_ids correspond to an entry in mitigations.
+            for mitigation_id in threat.mitigation_ids:
+                if mitigation_id not in [x.identifier for x in threat.mitigations]:
+                    try:
+                        new_mitigation = self._mitigations[mitigation_id]
+                        threat.mitigations.append(new_mitigation)
+                    except KeyError:
+                        error = (
+                            f"[😒] Could not find mitigation ID {mitigation_id} "
+                            + f"(referenced by threat {threat.identifier})"
+                        )
+                        findings.append(error)
+                        is_passing = False
+
+            # Now check all mitigations correspond to an entry in mitigation_ids.
+            for mitigation in threat.mitigations:
+                if mitigation.identifier not in threat.mitigation_ids:
+                    threat.mitigation_ids.append(mitigation.identifier)
 
         # Check if any threats are unmanaged
         for threat in list(self._threats.values()):

@@ -36,3 +36,10 @@ threats:
     base_exploitability: medium
     child_threats:
       - THREAT2
+    mitigations:
+      - MITIG1
+
+mitigations:
+  - name: use parametrized SQL queries in webapp code
+    description: Prepared statements for all queries ensure that an attack cannot find an SQLi
+    id: MITIG1

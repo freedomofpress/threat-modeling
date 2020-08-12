@@ -12,6 +12,7 @@ from threat_modeling.data_flow import (
     Datastore,
     Boundary,
 )
+from threat_modeling.mitigations import Mitigation
 from threat_modeling.threats import Threat
 
 
@@ -32,6 +33,7 @@ def load(
     List[Boundary],
     List[Union[Dataflow, BidirectionalDataflow]],
     List[Threat],
+    List[Mitigation],
 ]:
     """
     Function for loading threat models from YAML.
@@ -40,7 +42,7 @@ def load(
       config (str): Location to load from disk.
 
     Returns:
-      A tuple of (name, description, nodes, boundaries, dataflows, threats)
+      A tuple of (name, description, nodes, boundaries, dataflows, threats, mitigations)
     """
     with open(config) as f:
         config_data = yaml.load(f, Loader=yaml.SafeLoader)
@@ -99,6 +101,7 @@ def load(
         base_exploitability = threat.get("base_exploitability", None)
         threat_category = threat.get("threat_category", None)
         dfd_element = threat.get("dfd_element", None)
+        mitigations = threat.get("mitigations", None)
         threat_obj = Threat(
             name=name,
             identifier=identifier,
@@ -110,18 +113,30 @@ def load(
             child_threat_ids=child_threat_ids,
             threat_category=threat_category,
             dfd_element=dfd_element,
+            mitigation_ids=mitigations,
         )
         threats.append(threat_obj)
+
+    mitigations = []
+    for mitigation in config_data.get("mitigations", []):
+        identifier = mitigation.get("id", None)
+        description = mitigation.get("description", None)
+        name = mitigation["name"]
+        mitigation_obj = Mitigation(
+            name=name, identifier=identifier, description=description,
+        )
+        mitigations.append(mitigation_obj)
 
     name = config_data.get("name", None)
     description = config_data.get("description", None)
 
-    return (name, description, nodes, boundaries, dataflows, threats)
+    return (name, description, nodes, boundaries, dataflows, threats, mitigations)
 
 
 def save(
     elements: List[Element],
     threats: List[Threat],
+    mitigations: List[Mitigation],
     name: Optional[str],
     description: Optional[str],
     config: Optional[str],
@@ -132,6 +147,7 @@ def save(
     Args:
       elements (list[Element]): list of elements from the threat model
       threats (list[Threat]: list of threats from the threat model
+      mitigations (list[Mitigation]): list of mitigations from the threat model
       name (str, optional): threat model's name
       description (str, optional): threat model's description
       config (str, optional): Location on disk to save the YAML.
@@ -195,14 +211,43 @@ def save(
             threat_dict.update(
                 {"child_threats": [str(x.identifier) for x in threat.child_threats]}
             )
+        if threat.mitigations:
+            threat_dict.update(
+                {"mitigations": [str(x.identifier) for x in threat.mitigations]}
+            )
         threats_to_save.append(threat_dict)
 
+    mitigations_to_save = []
+    for mitigation in mitigations:
+        mitigations_dict: Dict[str, Union[List[str], str]] = {
+            "id": str(mitigation.identifier)
+        }
+        if mitigation.name:
+            mitigations_dict.update({"name": mitigation.name})
+        if mitigation.description:
+            mitigations_dict.update({"description": mitigation.description})
+        mitigations_to_save.append(mitigations_dict)
+
+    yaml_keys = [
+        "name",
+        "description",
+        "nodes",
+        "dataflows",
+        "boundaries",
+        "threats",
+        "mitigations",
+    ]
+    yaml_values = [
+        name,
+        description,
+        nodes,
+        dataflows,
+        boundaries,
+        threats_to_save,
+        mitigations_to_save,
+    ]
     with open(config, "w") as f:
-        yaml.dump({"name": name}, f, sort_keys=False)
-        yaml.dump({"description": description}, f, sort_keys=False)
-        yaml.dump({"nodes": nodes}, f, sort_keys=False)
-        yaml.dump({"dataflows": dataflows}, f, sort_keys=False)
-        yaml.dump({"boundaries": boundaries}, f, sort_keys=False)
-        yaml.dump({"threats": threats_to_save}, f, sort_keys=False)
+        for key, value in zip(yaml_keys, yaml_values):
+            yaml.dump({key: value}, f, sort_keys=False)
 
     return config
