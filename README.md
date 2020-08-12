@@ -7,33 +7,48 @@ This is a library of threat modeling tools in Python inspired by related project
 
 This YAML document can be stored in version control and updated to keep track the DFD structure, the list of threats that have been considered, their mitigation status, and what compensating security controls have been applied.
 
-This library considers countermeasures to be first-class objects, in addition to threats and DFD elements. This is done to make it easier to track why countermeasures have been implemented/applied and to aid decision-making when deciding between implementing various proposed countermeasures.
+This library considers countermeasures to be first-class objects, in addition to threats and DFD elements. This is done to make it easier to track _why_ countermeasures have been implemented/applied and to aid decision-making when deciding between implementing various proposed countermeasures.
 
-## Installation
+There is also a `threatmodel --check` option which is effectively a linter and can be run
+in your CI/CD pipeline (see CircleCI job `examples` and the Linter section below) to flag issues.
+
+# Installation
 
 ```
 pip install --editable .
 ```
 
-## CLI usage
+# CLI usage
 
 ```
 $ threatmodel --help
-usage: threatmodel [-h] [--attack-trees] [--dfd] [--generate-threats] input
+usage: threatmodel [-h] [--check] [--attack-trees] [--dfd]
+                   [--generate-threats]
+                   input
 
 positional arguments:
   input               system specification (yaml)
 
 optional arguments:
   -h, --help          show this help message and exit
+  --check             lint/check your threat model definition
   --attack-trees      generate attack trees
   --dfd               generate data flow diagram
   --generate-threats  generate threats
 ```
 
-## Data Flow Diagram
+# Linter
 
-### YAML-based system specification
+`threatmodel --check` will look for the following:
+
+* (fails linter) threats that have not been triaged (i.e. have the status of unmanaged)
+* (fails linter) references to child threats that do not exist
+* (fails linter) references to mitigations that do not exist
+
+
+# Data Flow Diagram
+
+## YAML-based system specification
 
 The following YAML is an example specification (example taken from [this paper (PDF)](https://www.cs.cmu.edu/~mabianto/papers/07_ase.pdf)):
 
@@ -102,7 +117,7 @@ This will generate the following Data Flow Diagram:
 
 ![alt text](docs/images/minesweeper.png)
 
-## Threat Examples
+# Threats
 
 You can add the threats key to your system YAML to load existing threats for your system, for example:
 
@@ -116,6 +131,8 @@ threats:
   base_exploitability: Medium
   dfd_element: DFD1
   threat_category: Tampering
+  mitigations:
+    - MITIG1
 ```
 
 ### Allowed keys for threats
@@ -129,11 +146,27 @@ threats:
 * `dfd_element` (optional)
 * `threat_category` (optional, defaults to unknown if missing)
 * `child_threats` (optional, list of threat IDs that an attacker can attempt next)
-
-Note that if threats are *not* linked to DFD elements, duplicate threats may be generated when you perform threat enumeration.
+* `mitigations` (optional, list of mitigation IDs that have been applied to this threat)
 
 ```
-$ threatmodel --threat-generation-method STRIDE minesweeper.yaml
+$ threatmodel --generate-threats minesweeper.yaml
 [⏳] Loading threat model, standby!
 [🔪] New threats found! Saved in minesweeper_generated.yaml.
 ```
+
+# Mitigations
+
+You can add the mitigations key to store information about your applied mitigations in version control:
+
+```
+mitigations:
+- id: MITIG1
+  name: Restrictive permissions on configuration file.
+  description: Prevents unauthorized users from writing changes to the Minesweeper configuration file.
+```
+
+### Allowed keys for mitigations
+
+* `name` (required)
+* `id` (optional)
+* `description` (optional)
