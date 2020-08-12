@@ -1,5 +1,6 @@
 import os
 
+from threat_modeling.mitigations import Mitigation
 from threat_modeling.threats import AttackTree, Threat, ThreatCategory
 
 
@@ -61,3 +62,30 @@ def test_threat_categories():
         base_exploitability="low",
     )
     assert my_threat.threat_category == ThreatCategory.UNKNOWN
+
+
+def test_threat_by_mitigation_obj():
+    mitig = Mitigation(
+        "Datacenter entirely encased in stone, only xorn can enter", "MITIG1"
+    )
+    my_threat = Threat(
+        "Attacker breaks into datacenter",
+        "THREAT1",
+        base_impact="high",
+        base_exploitability="low",
+        threat_category="privilege escalation",
+        mitigations=[mitig],
+    )
+    assert mitig in my_threat.mitigations
+
+
+def test_threat_by_mitigation_id():
+    my_threat = Threat(
+        "Attacker breaks into datacenter",
+        "THREAT1",
+        base_impact="high",
+        base_exploitability="low",
+        threat_category="privilege escalation",
+        mitigation_ids=["MITIG1"],
+    )
+    assert "MITIG1" in my_threat.mitigation_ids

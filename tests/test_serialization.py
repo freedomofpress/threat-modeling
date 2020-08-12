@@ -11,7 +11,9 @@ def test_load_simple_yaml_boundaries_nodes_flows():
         os.path.dirname(os.path.realpath(__file__)), "files/simple.yaml"
     )
 
-    (name, description, nodes, boundaries, dataflows, threats) = load(test_file)
+    (name, description, nodes, boundaries, dataflows, threats, mitigations) = load(
+        test_file
+    )
 
     assert name == "Example"
     assert description == "Example threat model"
@@ -22,6 +24,7 @@ def test_load_simple_yaml_boundaries_nodes_flows():
     assert len(boundaries) == 1
     assert len(dataflows) == 1
     assert len(threats) == 0
+    assert len(mitigations) == 0
 
 
 def test_load_invalid_node_type():
@@ -38,7 +41,9 @@ def test_load_simple_yaml_bidirectional():
         os.path.dirname(os.path.realpath(__file__)), "files/bidirectional.yaml"
     )
 
-    (name, description, nodes, boundaries, dataflows, threats) = load(test_file)
+    (name, description, nodes, boundaries, dataflows, threats, mitigations) = load(
+        test_file
+    )
 
     assert name == "Example"
     assert description == "Example threat model"
@@ -50,6 +55,7 @@ def test_load_simple_yaml_bidirectional():
     assert len(dataflows) == 1
     assert type(dataflows[0]) == BidirectionalDataflow
     assert len(threats) == 0
+    assert len(mitigations) == 0
 
 
 def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
@@ -68,6 +74,7 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
         saved_boundaries,
         saved_dataflows,
         saved_threats,
+        saved_mitigations,
     ) = load(config)
 
     assert tm.name == saved_name
@@ -76,14 +83,17 @@ def test_save_simple_yaml_boundaries_nodes_flows(request, tmpdir):
         list(tm._elements.values()) == saved_nodes + saved_boundaries + saved_dataflows
     )
     assert len(saved_threats) == 0
+    assert len(saved_mitigations) == 0
 
 
-def test_load_simple_yaml_boundaries_threats():
+def test_load_simple_yaml_boundaries_threats(tmpdir):
     test_file = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "files/simple_with_threats.yaml"
     )
 
-    (name, description, nodes, boundaries, dataflows, threats) = load(test_file)
+    (name, description, nodes, boundaries, dataflows, threats, mitigations) = load(
+        test_file
+    )
 
     assert name == "Example"
     assert description == "Web application"
@@ -94,3 +104,27 @@ def test_load_simple_yaml_boundaries_threats():
     assert len(boundaries) == 1
     assert len(dataflows) == 1
     assert len(threats) == 2
+
+    tm = ThreatModel.load(test_file)
+    config = tm.save("{}/test.yaml".format(str(tmpdir)))
+
+    (
+        saved_name,
+        saved_description,
+        saved_nodes,
+        saved_boundaries,
+        saved_dataflows,
+        saved_threats,
+        saved_mitigations,
+    ) = load(config)
+    assert tm.name == saved_name
+    assert tm.description == saved_description
+    assert len(tm._elements.values()) == len(
+        saved_nodes + saved_boundaries + saved_dataflows
+    )
+    for element in tm._elements.values():
+        assert str(element.identifier) in [
+            x.identifier for x in saved_nodes + saved_boundaries + saved_dataflows
+        ]
+    assert len(saved_threats) == 2
+    assert len(saved_mitigations) == 1

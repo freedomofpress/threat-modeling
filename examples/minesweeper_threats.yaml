@@ -54,8 +54,15 @@ threats:
 - id: THREAT1
   name: Attacker tampers with config file
   description: An attacker is able to introduce malicious changes into the settings file
-  status: Unmanaged
+  status: Managed Mitigated
   base_impact: Medium
   base_exploitability: Medium
   dfd_element: DFD1
   threat_type: Tampering
+  mitigations:
+    - MITIG1
+
+mitigations:
+- id: MITIG1
+  name: Restrictive permissions on configuration file.
+  description: Prevents unauthorized users from writing changes to the Minesweeper configuration file.

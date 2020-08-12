@@ -5,7 +5,7 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - run: 
+      - run:
           name: Install dev dependencies and run tests.
           command: |
             sudo apt install graphviz-dev graphviz
@@ -15,8 +15,21 @@ jobs:
             pip install -r requirements.txt
             make check
 
+  examples:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Run check/lint on minesweeper YAML
+          command: |
+            sudo apt install graphviz-dev graphviz
+            pip install --editable .
+            threatmodel --check examples/minesweeper_threats.yaml
+
 workflows:
   version: 2
   jobs_per_pr:
     jobs:
       - test
+      - examples
