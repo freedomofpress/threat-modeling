@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/redshiftzero/threat-modeling",
-    packages=setuptools.find_packages(),
+    packages=['threat_modeling', 'threat_modeling.enumeration'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Development Status :: 3 - Alpha",
