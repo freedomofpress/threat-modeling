@@ -1,3 +1,4 @@
+import logging
 import os
 import pygraphviz
 import reprlib
@@ -268,12 +269,17 @@ class ThreatModel:
     def add_threats(self, threats: List[Threat]) -> None:
         """
         Method to add multiple threats to the threat model.
+        If a threat already exists in the model, it will not
+        add it again.
 
         Args:
           threats (list of Threat): threats to be added
         """
         for threat in threats:
-            self.add_threat(threat)
+            try:
+                self.add_threat(threat)
+            except DuplicateIdentifier:
+                logging.info(f"duplicate threat: {threat.identifier} not adding again")
 
     def add_elements(
         self,
@@ -424,7 +430,7 @@ class ThreatModel:
         """
         Generate threats and add them to the threat model.
         """
-        new_threats = method.generate(self._threats.values(), self._elements.values())
+        new_threats = method.generate(self._elements.values())
         self.add_threats(new_threats)
         assert isinstance(new_threats, list)
         return new_threats

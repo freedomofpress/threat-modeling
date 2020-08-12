@@ -21,15 +21,14 @@ class NaiveSTRIDE(ThreatEnumerationMethod):
     def __init__(self):
         pass
 
-    def generate(
-        self, threats: List[Threat], dfd_elements: List["Element"]
-    ) -> List[Threat]:
+    def generate(self, dfd_elements: List["Element"]) -> List[Threat]:
 
         generated_threats = []
         for element in dfd_elements:
             if not isinstance(element, Boundary):
                 for threat_category in STRIDE_THREATS:
                     threat = Threat(
+                        identifier=f"{threat_category.name}_{element.name}",
                         name=f"{threat_category.name} of {element.name}",
                         threat_category=threat_category.name,
                     )
