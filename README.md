@@ -1,7 +1,7 @@
 # threat-modeling
 [![CircleCI](https://circleci.com/gh/redshiftzero/threat-modeling.svg?style=svg)](https://circleci.com/gh/redshiftzero/threat-modeling)
 
-**Note:** this is an experimental tool in the alpha stage, the API and YAML spec format may change.
+**Note:** this is an experimental tool in the alpha stage that is under active development, the API and YAML spec format may change.
 
 This is a library of threat modeling tools in Python inspired by related projects like [pytm](https://github.com/izar/pytm). Data Flow Diagrams (DFDs) can be generated using a YAML specification of the system architecture. If you include the threats and their child-parent relationships in the YAML specification, you can also generate attack trees.
 
@@ -148,10 +148,14 @@ threats:
 * `child_threats` (optional, list of threat IDs that an attacker can attempt next)
 * `mitigations` (optional, list of mitigation IDs that have been applied to this threat)
 
+## Threat Generation
+
+To generate stub threats for later analysis:
+
 ```
-$ threatmodel --generate-threats minesweeper.yaml
+$ threatmodel --generate-threats examples/minesweeper.yaml
 [⏳] Loading threat model, standby!
-[🔪] New threats found! Saved in minesweeper_generated.yaml.
+[🔪] New threats found! Saved in examples/minesweeper_generated.yaml.
 ```
 
 # Mitigations
