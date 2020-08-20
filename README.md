@@ -1,5 +1,7 @@
 # threat-modeling
 [![CircleCI](https://circleci.com/gh/redshiftzero/threat-modeling.svg?style=svg)](https://circleci.com/gh/redshiftzero/threat-modeling)
+[![PyPI version](https://badge.fury.io/py/threat-modeling.svg)](https://badge.fury.io/py/threat-modeling)
+[![Documentation Status](https://readthedocs.org/projects/threat-modeling/badge/?version=latest)](https://threat-modeling.readthedocs.io/en/latest/?badge=latest)
 
 **Note:** this is an experimental tool in the alpha stage that is under active development, the API and YAML spec format may change.
 
