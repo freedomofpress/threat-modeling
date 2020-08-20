@@ -2,6 +2,7 @@ import abc
 
 from typing import List
 
+from threat_modeling.data_flow import Element
 from threat_modeling.threats import Threat
 
 
@@ -12,5 +13,5 @@ class ThreatEnumerationMethod(abc.ABC):
     """
 
     @abc.abstractmethod
-    def generate(self, dfd_elements: List["Element"]) -> List[Threat]:
+    def generate(self, dfd_elements: List[Element]) -> List[Threat]:
         """Method to generate new threats"""

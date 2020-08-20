@@ -32,7 +32,7 @@ class ThreatModel:
     enumerate threats, check for inconsistencies/unmanaged threats, and perform
     analysis on the threat model as a whole.
 
-    One should use the add_element and add_threat methods to add elements
+    One should use the `add_element` and `add_threat` methods to add elements
     or threats:
 
     >>> threat_model = ThreatModel("example")
@@ -56,18 +56,7 @@ class ThreatModel:
     ) -> None:
         self.name = name
         self.description = description
-        self._elements: Dict[
-            Union[str, UUID],
-            Union[
-                Element,
-                ExternalEntity,
-                Process,
-                Datastore,
-                Boundary,
-                Dataflow,
-                BidirectionalDataflow,
-            ],
-        ] = {}
+        self._elements: Dict[Union[str, UUID], Element] = {}
         self._threats: Dict[Union[str, UUID], Threat] = {}
         self._mitigations: Dict[Union[str, UUID], Mitigation] = {}
 
@@ -500,7 +489,7 @@ class ThreatModel:
         """
         Generate threats and add them to the threat model.
         """
-        new_threats = method.generate(self._elements.values())
+        new_threats = method.generate(list(self._elements.values()))
         self.add_threats(new_threats)
         assert isinstance(new_threats, list)
         return new_threats

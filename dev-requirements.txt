@@ -4,3 +4,5 @@ pytest-xdist==1.30.0
 black==19.10b0
 flake8==3.7.9
 mypy==0.750
+sphinx==3.2.1
+sphinx-autobuild==0.7.1
