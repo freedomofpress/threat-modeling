@@ -390,7 +390,7 @@ class ThreatModel:
             except KeyError:  # We're at a leaf.
                 pass
 
-        dfd.draw(output, prog="dot", args="-Gdpi=300")
+        dfd.draw(output, prog="dot", args="-Gdpi=80")
         self._generated_dot = str(dfd)
 
     def check(self) -> Tuple[List[str], bool]:
