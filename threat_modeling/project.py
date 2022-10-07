@@ -466,7 +466,7 @@ class ThreatModel:
 
         return findings, is_passing
 
-    def draw_attack_trees(self, output_dir: Optional[str] = "") -> None:
+    def draw_attack_trees(self, output_dir: Optional[str] = ".") -> None:
         """
         Draw all attack trees and all subtrees, provided there
         is at least one node in the tree.
